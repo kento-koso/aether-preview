@@ -679,7 +679,7 @@ function update(now){
   bloom.strength=.75+bump(s,5,.5)*.2+(state==='in'?(1-ip)*.5:hold*.6);
   FIN.uniforms.uTime.value=time;FIN.uniforms.uCA.value=.0015+Math.min(.01,vel*.006)+bump(s,4.8,.4)*.02;
   const st=inP2?Math.min(3,Math.floor(P.s+.001)):Math.min(7,Math.round(s)),pk=(inP2?'p':'v')+st;
-  if(pk!==lastPh){lastPh=pk;phraseEl.classList.add('fade');setTimeout(()=>{const p=PHRASES[st];phraseEl.innerHTML=p.map(t=>`<span>${t}</span>`).join('');phraseEl.classList.remove('fade')},450);tocBtns.forEach((b,i)=>b.setAttribute('aria-current',i===(inP2?st:TOCMAP[st])?'true':'false'))}
+  if(pk!==lastPh){lastPh=pk;phraseEl.classList.add('fade');setTimeout(()=>{const p=PHRASES[st]||[];phraseEl.innerHTML=p.map(t=>`<span>${t}</span>`).join('');phraseEl.classList.remove('fade')},450);tocBtns.forEach((b,i)=>b.setAttribute('aria-current',i===(inP2?st:TOCMAP[st])?'true':'false'))}
   if(inP2)A.ambient(st);else A.update(s,vel*60,ptr.speed,time*2.6);
   if(!inP2||diving){if(s<5.5)composer.render();else renderer.render(natScene,cam360)}
 }
