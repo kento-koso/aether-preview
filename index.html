@@ -1,7 +1,7 @@
 <meta charset="utf-8">
-<title>AETHER</title>
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AETHER</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -206,7 +206,7 @@ const root=document.documentElement;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FINE=matchMedia('(pointer:fine)').matches;
 const SMALL=Math.min(innerWidth,innerHeight)<700;
-const N=SMALL?52000:120000;
+const LOW=SMALL||!FINE;const N=SMALL?30000:LOW?60000:120000;
 root.classList.add('locked');if(FINE)root.classList.add('cur-on');
 const sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
 const bump=(s,c,w)=>Math.max(0,1-Math.abs(s-c)/w);
@@ -286,7 +286,7 @@ const WORDS='the of and to in is that for it as with on be at by this from or ha
 function sentence(){let n=6+(Math.random()*16|0),out=[];for(let i=0;i<n;i++){let w=WORDS[(Math.random()*WORDS.length)|0];if(i===0)w=w[0].toUpperCase()+w.slice(1);out.push(w)}return out.join(' ')+(Math.random()<.85?'.':'?')}
 const tx=document.getElementById('tx'),tg=tx.getContext('2d');let layers=[];
 function buildText(){
-  const dpr=Math.min(devicePixelRatio||1,2),W=innerWidth,H=innerHeight;tx.width=W*dpr;tx.height=H*dpr;tg.setTransform(dpr,0,0,dpr,0,0);
+  const dpr=Math.min(devicePixelRatio||1,LOW?1.5:2),W=innerWidth,H=innerHeight;tx.width=W*dpr;tx.height=H*dpr;tg.setTransform(dpr,0,0,dpr,0,0);
   const spec=[[11,.26,22],[14,.36,40],[19,.5,64],[27,.62,96]];
   layers=spec.map(([fs,a,sp],i)=>{const c=document.createElement('canvas');c.width=Math.ceil(W*dpr);c.height=Math.ceil(H*1.5*dpr);const g=c.getContext('2d');g.scale(dpr,dpr);
     g.font=`${i>2?'300':'200'} ${fs}px "Geist Mono",ui-monospace,monospace`;g.fillStyle=`rgba(239,232,216,${a})`;g.textBaseline='top';
@@ -451,7 +451,7 @@ void main(){vec2 c=gl_PointCoord-.5;float d=length(c);float a=smoothstep(.5,0.,d
 let renderer;
 try{renderer=new THREE.WebGLRenderer({canvas:document.getElementById('gl'),antialias:false,powerPreference:'high-performance'})}
 catch(e){root.classList.remove('locked');throw e}
-const DPR=Math.min(devicePixelRatio||1,SMALL?2:1.75);
+const DPR=Math.min(devicePixelRatio||1,LOW?1.25:1.75);
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight);renderer.setClearColor(0x04060a,1);
 const scene=new THREE.Scene();
 const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.05,2000);cam.position.set(0,0,11);
@@ -486,7 +486,7 @@ const pts=new THREE.Points(geo,new THREE.ShaderMaterial({uniforms:U,vertexShader
 pts.frustumCulled=false;scene.add(pts);
 const fitWX=()=>{const as=innerWidth/innerHeight;U.uWX.value=as<1?Math.max(.55,1.25*as*1.3):1.25};fitWX();
 
-const composer=new EffectComposer(renderer);composer.setPixelRatio(Math.min(DPR,1.5));composer.setSize(innerWidth,innerHeight);
+const composer=new EffectComposer(renderer);composer.setPixelRatio(LOW?1:Math.min(DPR,1.5));composer.setSize(innerWidth,innerHeight);
 composer.addPass(new RenderPass(scene,cam));
 const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.85,.5,.16);composer.addPass(bloom);
 const FIN=new ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uRes:{value:new THREE.Vector2(innerWidth,innerHeight)},uCA:{value:.002}},
@@ -496,7 +496,7 @@ const FIN=new ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uRes:{
   col=max(col,vec3(0.))+vec3(.012,.016,.026);col*=1.-r*1.15;float g=fract(sin(dot(floor(vUv*uRes)+fract(uTime*7.)*97.,vec2(12.9898,78.233)))*43758.5453);col+=(g-.5)*.05;gl_FragColor=vec4(col,1.);}`});
 composer.addPass(FIN);
 
-addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);FIN.uniforms.uRes.value.set(innerWidth,innerHeight);fitWX();buildText();measure()});
+let lastW6=innerWidth;addEventListener('resize',()=>{if(LOW&&innerWidth===lastW6)return;lastW6=innerWidth;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);FIN.uniforms.uRes.value.set(innerWidth,innerHeight);fitWX();buildText();measure()});
 
 /* ───────── スクロール＝時間 ───────── */
 const mks=[...document.querySelectorAll('.mk')];let tops=[];
@@ -571,7 +571,7 @@ const rayN=new THREE.Raycaster();
 function touchNature(cx,cy){rayN.setFromCamera({x:cx/innerWidth*2-1,y:-(cy/innerHeight)*2+1},cam360);const d=rayN.ray.direction;UC.uTouch.value.set(d.x,d.y*RAD/Math.max(.2,Math.hypot(d.x,d.z)),d.z,UC.uTime.value);
   if(A.on){const sc=[67,69,71,74,76,79,81,83];A.hit(mtof(sc[(Math.random()*sc.length)|0]),.06,3,3.51)}if(!FINE&&navigator.vibrate)try{navigator.vibrate(10)}catch(e){}}
 // 手前を舞う雪と光の粒：奥行きの中を、手の動きに合わせて流れる
-const NS=SMALL?2500:6000,sp=new Float32Array(NS*3),sv=new Float32Array(NS);
+const NS=SMALL?1200:6000,sp=new Float32Array(NS*3),sv=new Float32Array(NS);
 for(let i=0;i<NS;i++){const a=Math.random()*6.283,r=1.2+Math.random()*7.5;sp.set([Math.sin(a)*r,(Math.random()-.5)*8,-Math.cos(a)*r],i*3);sv[i]=Math.random()}
 const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));sg.setAttribute('aR',new THREE.BufferAttribute(sv,1));
 const US={uTime:{value:0},uWind:{value:new THREE.Vector2()},uPR:{value:DPR},uIn:{value:0}};
@@ -750,7 +750,7 @@ const canvas=document.getElementById('p2-gl');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'high-performance'});
 renderer.outputColorSpace=THREE.LinearSRGBColorSpace;renderer.toneMapping=THREE.NoToneMapping;
 const SMALL=Math.min(innerWidth,innerHeight)<700;
-let DPR=Math.min(devicePixelRatio||1,SMALL?1.5:1.5);renderer.setPixelRatio(DPR);
+const LOW=SMALL||!matchMedia('(pointer:fine)').matches;let DPR=Math.min(devicePixelRatio||1,LOW?1:1.5);renderer.setPixelRatio(DPR);
 let VW=innerWidth,VH=innerHeight,R=0;
 const rtOpt={depthBuffer:true,type:THREE.UnsignedByteType};
 const rtA=new THREE.WebGLRenderTarget(4,4,rtOpt),rtB=new THREE.WebGLRenderTarget(4,4,rtOpt),rtV=new THREE.WebGLRenderTarget(4,4,rtOpt);
@@ -884,7 +884,7 @@ const SHAPES=[
   [blob(10,1,[[-.22,0,0,.7],[.24,.1,0,.65]]),blob(11,1,[[0,.2,0,.6],[-.2,-.15,0,.6],[.2,-.15,0,.6]]),blob(12,1.4,[[0,0,0,.95]])],
   [blob(13,1,[[-.08,.12,0,.78],[.12,-.2,0,.6]]),blob(14,1,[[0,.14,0,.8],[.05,-.22,0,.55]]),blob(15,1.1,[[0,0,0,.9],[.3,.25,0,.35]])]
 ];
-const N=CLS.reduce((a,c)=>a+c.n,0);
+if(LOW)CLS.forEach(c=>c.n=Math.round(c.n*.5));const N=CLS.reduce((a,c)=>a+c.n,0);
 const mx=new Float32Array(N),my=new Float32Array(N),mz=new Float32Array(N),mr=new Float32Array(N),mth=new Float32Array(N),mvx=new Float32Array(N),mvy=new Float32Array(N),msig=new Float32Array(N),msigR=new Float32Array(N);
 const mcls=new Uint8Array(N),mMesh=new Uint16Array(N),mSlot=new Uint16Array(N),bound=new Int32Array(N).fill(-1),bindT=new Float32Array(N);
 const BS=new Float32Array(N*9);
@@ -957,7 +957,7 @@ vilMat.onBeforeCompile=sh=>{Object.assign(sh.uniforms,UV);
   sh.vertexShader='uniform float uWaveX,uWaveA;\n'+sh.vertexShader.replace('#include <displacementmap_vertex>','#include <displacementmap_vertex>\n float wv=exp(-pow((position.x-uWaveX)/1.1,2.));transformed+=normalize(objectNormal)*uWaveA*wv;transformed.y*=1.;');
   sh.fragmentShader='uniform float uFd,uFr;\n'+sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\n gl_FragColor.a=clamp(abs(vViewPosition.z-uFd)/uFr,0.,1.);')};
 const VILW=10,VILH=10*1532/2048;
-const vilMesh=new THREE.Mesh(new THREE.PlaneGeometry(VILW,VILH,SMALL?320:512,SMALL?240:384),vilMat);vilMesh.rotation.x=-Math.PI/2;vilScene.add(vilMesh);
+const vilMesh=new THREE.Mesh(new THREE.PlaneGeometry(VILW,VILH,LOW?160:512,LOW?120:384),vilMat);vilMesh.rotation.x=-Math.PI/2;vilScene.add(vilMesh);
 const VIL_UM_PER_UNIT=900/VILW;    // section ≈ 0.9 mm wide (ileal villus ≈ 120–150 µm across)
 function buildVilli(im){
   const w=1024,h=Math.round(1024*im.height/im.width);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});
@@ -1071,7 +1071,7 @@ function resize(){VW=innerWidth;VH=innerHeight;renderer.setSize(VW,VH,false);con
   [ui,tx].forEach(c=>{c.width=w;c.height=h});inset.width=inset.height=Math.round(132*DPR);
   vilCam.aspect=VW/VH;vilCam.updateProjectionMatrix();SH=VH*1.5;document.getElementById('p2zone').style.height=(SH*ZONE)+'px';dispatchEvent(new Event('p2layout'));
   UD.uRes.value.set(w,h);UL.uRes.value.set(w,h);US.uRes.value.set(w,h);UL.uDpr.value=DPR}
-addEventListener('resize',resize);resize();
+let lastW=innerWidth;addEventListener('resize',()=>{if(LOW&&innerWidth===lastW)return;lastW=innerWidth;resize()});resize();
 
 const ptr={x:VW*.5,y:VH*.5,in:false,fx:0,fy:0};
 addEventListener('pointermove',e=>{ptr.x=e.clientX;ptr.y=e.clientY;ptr.in=true});
