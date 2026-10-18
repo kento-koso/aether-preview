@@ -283,7 +283,11 @@ const A={ctx:null,on:false,lastSt:-1,next:0,beatAt:0,birdAt:0,stepSign:0,whooshe
 /* ───────── 意味のない文章 ───────── */
 // 意味のない英文：実在の語を、文法なしに並べる
 const WORDS='the of and to in is that for it as with on be at by this from or have an they which you were her all she there would their we him been has when who will more no if out so said what up its about into than them can only other new some could time these two may then do first any my now such like our over man me even most made after also did many before must through back years where much your way well down should because each just those people how too little state good very make world still own see men work long here get both between life being under never day same another know while last might us great old year off come since against go came right used take three'.split(' ');
-function sentence(){let n=6+(Math.random()*16|0),out=[];for(let i=0;i<n;i++){let w=WORDS[(Math.random()*WORDS.length)|0];if(i===0)w=w[0].toUpperCase()+w.slice(1);out.push(w)}return out.join(' ')+(Math.random()<.85?'.':'?')}
+const LINES=['The world is wider than words and numbers can hold.','Since the internet, we have lived and worked inside symbols.','Letters, figures, screens. A world that fits in a box.','Now machines take over the work of symbols.','So what lies outside them grows in value.','Each age has leaned on a part of the body: to eat, to hold, to know.','Next, the body turns toward relation: to others, to places.','We will spend our time and money feeling the wide world again.','Wind on the skin. Water in the ear. Someone breathing beside you.','Aether: the medium once thought to fill space and carry light.','Science said it was not there.','We take its name for what still moves between people and places.','Not one experience, but a culture that lasts.','Built into cities, buildings, and the hours people share.'];
+let lineI=(Math.random()*LINES.length)|0;function sentence(){lineI=(lineI+1)%LINES.length;return LINES[lineI]}
+// 文章を、モデルが読む単位（トークン）に割る：単語、長い語は3〜4文字ずつ、記号は単独
+const TOKS=[];LINES.forEach(l=>l.split(/(\s+|[.,:])/).filter(w=>w&&w.trim()).forEach(w=>{if(w.length<=6){TOKS.push(w);return}for(let i=0;i<w.length;){const n=3+((w.charCodeAt(i)+i)%2);TOKS.push(w.slice(i,i+n));i+=n}}));
+const tokId=w=>{let h=2166136261;for(const c of w)h=Math.imul(h^c.charCodeAt(0),16777619);return (h>>>0)%50257};
 const tx=document.getElementById('tx'),tg=tx.getContext('2d');let layers=[];
 function buildText(){
   const dpr=Math.min(devicePixelRatio||1,LOW?1.5:2),W=innerWidth,H=innerHeight;tx.width=W*dpr;tx.height=H*dpr;tg.setTransform(dpr,0,0,dpr,0,0);
@@ -299,22 +303,33 @@ function drawText(s,time,dt){
   const W=innerWidth,H=innerHeight;tg.clearRect(0,0,W,H);
   const flood=sm((s-3.55)/.8),ab=sm((s-4.45)/.6),gone=sm((s-5.25)/.25);
   if(flood>0&&ab<1){
-    tg.save();const k=1-ab*.35;tg.translate(W/2,H/2);tg.scale(k,k);tg.translate(-W/2,-H/2);
+    tg.save();
     layers.forEach((L,i)=>{const vis=sm(flood*layers.length-i);if(vis<=0)return;tg.globalAlpha=vis*(1-ab);
-      const y=-((time*L.sp+s*500*(1+i*.3)+L.off)%L.h);tg.drawImage(L.c,0,y,W,L.h);tg.drawImage(L.c,0,y+L.h,W,L.h)});
+      const y=-Math.round(((time*L.sp*(1-ab)+s*500*(1+i*.3)+L.off)%L.h)/(ab>0?26:1))*(ab>0?26:1);tg.drawImage(L.c,0,y,W,L.h);tg.drawImage(L.c,0,y+L.h,W,L.h)});
     tg.restore();
   }
   // 1ビットのバーコード：音と同じ信号を、白と黒だけで刻む
   const bc=sm((s-3.75)/.2)*(1-sm((s-4.75)/.2));
   if(bc>0){if(!drawText.bt||time-drawText.bt>.16){drawText.bt=time;drawText.bars=[];let x=0;while(x<W){const w=1+Math.random()*9;if(Math.random()<.5)drawText.bars.push([x,w]);x+=w};drawText.by=H*(.15+Math.random()*.7);drawText.bh=20+Math.random()*90;if(A.on)A.pip(1000+Math.random()*3000,.025,0)}
     tg.globalAlpha=bc*.85;tg.fillStyle='#fff';for(const [x,w] of drawText.bars)tg.fillRect(x,drawText.by,w,drawText.bh);tg.globalAlpha=1}
-  // 単語の流入
-  const rate=ab>0&&gone<1?(1-gone)*Math.sin(Math.min(1,ab*1.4)*Math.PI*.5+.2)*90:0;
-  tokAt+=rate*dt;while(tokAt>1){tokAt-=1;const a=Math.random()*6.283,r=Math.hypot(W,H)*.55*(.6+Math.random()*.5);toks.push({w:WORDS[(Math.random()*WORDS.length)|0],a,r,r0:r,sp:.55+Math.random()*.6,fs:11+Math.random()*16,spin:(Math.random()<.5?-1:1)*(1.2+Math.random())})}
-  tg.textAlign='center';tg.textBaseline='middle';
-  for(let i=toks.length-1;i>=0;i--){const t=toks[i];t.r-=t.r0*t.sp*dt*.9*(1+(1-t.r/t.r0)*2.5);t.a+=t.spin*dt*(1.2-t.r/t.r0);
-    if(t.r<6){toks.splice(i,1);continue}const q=t.r/t.r0,x=W/2+Math.cos(t.a)*t.r,y=H/2+Math.sin(t.a)*t.r*.82;
-    tg.globalAlpha=Math.min(1,(1-q)*3)*Math.min(1,q*4);tg.font=`300 ${t.fs*(.35+q*.65)}px "Geist Mono",monospace`;tg.fillStyle='#efe8d8';tg.fillText(t.w,x,y)}
+  // トークンの流入：升目に現れ → 番号になり → 直角に一歩ずつモデルへ
+  const CW=44,CH=26,cols=Math.floor(W/CW),rows=Math.floor(H/CH),cx0=Math.floor(cols/2),cy0=Math.floor(rows/2);
+  const bandR=Math.max(2,Math.floor(rows*.16)),coreC=Math.max(2,Math.floor(Math.min(W,H)*.14/CW));
+  const rate=ab>0&&gone<1?(1-gone)*Math.min(1,ab*2)*70:0;
+  tokAt+=rate*dt;while(tokAt>1){tokAt-=1;const w=TOKS[(Math.random()*TOKS.length)|0];const c=(Math.random()*cols)|0,r=(Math.random()*rows)|0;if(!toks.some(t=>t.c===c&&t.r===r))toks.push({w,id:String(tokId(w)),c,r,born:time})}
+  if(gone>=1||ab<=0)toks.length=0;
+  const tick=Math.floor(time*20);const step=tick!==drawText.tk;drawText.tk=tick;
+  tg.textAlign='left';tg.textBaseline='top';tg.font=`300 12px "Geist Mono",monospace`;
+  let entered=0;const occ=new Set(toks.map(t=>t.c+','+t.r));
+  for(let i=toks.length-1;i>=0;i--){const t=toks[i],age=time-t.born;
+    if(age>.7&&step){ // 縦に帯の中へ寄せてから、横に中央へ。1拍に1マス、前のマスが空くまで待つ（列に並ぶ）
+      const tr=Math.max(cy0-bandR,Math.min(cy0+bandR,t.r));let nc=t.c,nr=t.r;
+      if(t.r!==tr)nr+=Math.sign(tr-t.r);else if(Math.abs(t.c-cx0)>coreC)nc+=Math.sign(cx0-t.c);else{occ.delete(t.c+','+t.r);toks.splice(i,1);entered++;continue}
+      const k=nc+','+nr;if(!occ.has(k)){occ.delete(t.c+','+t.r);occ.add(k);t.c=nc;t.r=nr}}
+    const x=t.c*CW,y=t.r*CH,num=age>.35;
+    tg.globalAlpha=(num?.55:.95)*(1-gone);tg.fillStyle=num?'#9a968c':'#efe8d8';tg.fillText(num?t.id:t.w,x,y);
+    if(num&&age<.42){tg.globalAlpha=.9;tg.fillRect(x,y+CH-8,t.id.length*7.2,1)}}
+  if(entered&&A.on&&time-(drawText.pt||0)>.05){drawText.pt=time;A.pip(1800+entered*120,.012,0)}
   tg.globalAlpha=1;
 }
 /* ───────── シェーダ ───────── */
