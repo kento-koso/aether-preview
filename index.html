@@ -603,7 +603,11 @@ tocBtns.forEach(b=>b.addEventListener('click',()=>{if(state==='intro')enter();
 let lastPh=-1;
 let wasP2=false,afterOn=false,afterT=-99,holdT=0,nextPulse=0,nextHit=0,s=0,last=performance.now(),lastY=scrollY,vel=0,t0=performance.now(),forceS=null,lastYr='';
 const easeOutExpo=x=>x>=1?1:1-Math.pow(2,-10*x);
-function frame(now){update(now);requestAnimationFrame(frame)}
+// スマホ：30fpsに抑え、1秒ごとの実測で描画解像度を段階的に下げる（下げるだけ。上げ直してちらつかせない）
+let lastRun=0,gN=0,gSum=0,gT=0;const DPRS=[1,.8,.65,.5];let gLv=0;
+function frame(now){requestAnimationFrame(frame);if(LOW){if(now-lastRun<30)return;const d=now-lastRun;lastRun=now;if(d<200){gN++;gSum+=d}
+  if(now-gT>1000){if(gN>8&&gSum/gN>45&&gLv<DPRS.length-1){gLv++;const k=DPRS[gLv];renderer.setPixelRatio(1.25*k);composer.setPixelRatio(k);window.P2&&P2.setDPR(k)}gT=now;gN=0;gSum=0}}
+  update(now)}
 function update(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;const time=(now-t0)/1000*(RM?.35:1);
   if(state==='intro'){hold=Math.max(0,Math.min(1,hold+(holding?dt/1.35:-dt*1.6)));holdFill.style.strokeDashoffset=389.6*(1-hold);A.hold(hold);if(hold>=1)enter()}
@@ -1066,7 +1070,7 @@ const CAL={
 /* ───────── layout / scroll ───────── */
 const ui=document.getElementById('p2-ui'),ux=ui.getContext('2d'),tx=document.getElementById('p2-tx'),txx=tx.getContext('2d');
 const inset=document.getElementById('p2-inset'),ix=inset.getContext('2d'),insetL=document.getElementById('p2-insetL');
-let SH=1;const ZONE=4.15;
+let SH=1,periN=0,lastL=-1;const ZONE=4.15;
 function resize(){VW=innerWidth;VH=innerHeight;renderer.setSize(VW,VH,false);const w=Math.floor(VW*DPR),h=Math.floor(VH*DPR);[rtA,rtB,rtV].forEach(r=>r.setSize(w,h));
   [ui,tx].forEach(c=>{c.width=w;c.height=h});inset.width=inset.height=Math.round(132*DPR);
   vilCam.aspect=VW/VH;vilCam.updateProjectionMatrix();SH=VH*1.5;document.getElementById('p2zone').style.height=(SH*ZONE)+'px';dispatchEvent(new Event('p2layout'));
@@ -1146,7 +1150,7 @@ function update(now){
   for(const k in SRC){SRC[k].setActive(act[k]);SRC[k].draw(time)}
   if(act.ca&&SRC.ca.mode!=='none'){const key=SRC.ca.mode+SRC.ca.lastKey+(SRC.ca.mode==='video'?Math.floor(time*8):0);if(key!==caKey){caKey=key;US.uCaMu.value=caDrift()}}
   // peristalsis: luminance of the real midgut clip drives the wave
-  if(act.peri){let L=-1;if(SRC.peri.mode==='video'){const d=SRC.peri.cx.getImageData(0,0,40,30).data;let a=0;for(let i=0;i<d.length;i+=4)a+=d[i];L=a/(d.length/4)/255}
+  if(act.peri){let L=-1;if(SRC.peri.mode==='video'&&(!LOW||(periN=(periN+1)%6)===0||lastL<0)){const d=SRC.peri.cx.getImageData(0,0,40,30).data;let a=0;for(let i=0;i<d.length;i+=4)a+=d[i];lastL=L=a/(d.length/4)/255}else if(SRC.peri.mode==='video')L=lastL;
     if(L>=0){if(periBase<0)periBase=L;periBase+=(L-periBase)*.02;periSig+=((L-periBase)*30-periSig)*.2;periPhase+=dt*(.16+Math.max(0,periSig)*.25)}else{periSig=.5+.5*Math.sin(time*6.283/5.8);periPhase+=dt/5.8}
     UV.uWaveX.value=-VILW*.6+((periPhase%1))*VILW*1.2;UV.uWaveA.value=.06+.22*Math.max(0,Math.min(1,periSig))}
   // ── villi render (only when on stage)
@@ -1216,7 +1220,7 @@ function update(now){
 }
 // 単独のループは持たない。本体のループから、顕微鏡の区間にいる間だけ update が呼ばれる（区間の外では follow でスクロールだけ追う）
 function follow(now){const dt=Math.min(.05,Math.max(.001,(now-last)/1000));last=now;time=Math.max(0,(now-t0)/1000);s+=(scrollY/SH-s)*(1-Math.pow(.004,dt));if(forceS!==null)s=forceS}
-window.P2={END:4.12,get s(){return s},SH:()=>SH,update,follow,A,sleep(){for(const k in SRC)SRC[k].setActive(false);inset.style.opacity=0;insetL.style.opacity=0}};
+window.P2={setDPR(d){if(d===DPR)return;DPR=d;renderer.setPixelRatio(d);resize()},get dpr(){return DPR},END:4.12,get s(){return s},SH:()=>SH,update,follow,A,sleep(){for(const k in SRC)SRC[k].setActive(false);inset.style.opacity=0;insetL.style.opacity=0}};
 /* test hook: force scroll stage s and advance the loop synchronously (the review tab is hidden, rAF does not run) */
 window.__shot=function(v,sec=2){forceS=v;let t=last;for(let i=0;i<Math.round(sec*30);i++){t+=33;update(t)}return{s:v,W:+US.uW.value.toFixed(3),modes:Object.fromEntries(Object.entries(SRC).map(([k,x])=>[k,x.mode+':'+x.stills.length])),tem:{ok:TEM.ok,deg:TEM.deg,period:Math.round(TEM.period),Z:TEM.Z.length},onsets:DATA.onsets.length,breath:!!DATA.breath,fail:FAIL.slice()}};
 window.__release=()=>{forceS=null};
