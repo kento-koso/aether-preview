@@ -116,21 +116,29 @@ html.p2 #gl,html.p2 #tx{opacity:0;transform:scale(7)}
 html.diving #gl{transition:opacity 1.5s ease,transform 1.8s cubic-bezier(.6,0,.9,.4)}html.diving .p2c{transition:opacity 1.4s ease .5s}
 .edge{--ink:#efe8d8;--pdim:rgba(239,232,216,.55);--faint:rgba(239,232,216,.32);position:fixed;z-index:5;pointer-events:none;color:var(--pdim);font-family:var(--f-body);font-weight:300;font-size:10px;letter-spacing:.06em;opacity:0;transition:opacity .6s,color .4s}
 html.p2 .edge{opacity:1}
-#p2-inset{position:fixed;z-index:4;right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:150px;width:132px;height:132px;opacity:0;transition:opacity .8s;pointer-events:none}
-#p2-insetL{position:fixed;z-index:4;right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:132px;width:132px;text-align:center;color:rgba(239,232,216,.55);opacity:0;transition:opacity .8s;font-family:var(--f-body);font-size:9px;letter-spacing:.12em}
+#p2-inset{position:fixed;z-index:4;right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:212px;width:132px;height:132px;opacity:0;transition:opacity .8s;pointer-events:none}
+#p2-insetL{position:fixed;z-index:4;right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:160px;width:220px;text-align:right;white-space:nowrap;color:rgba(239,232,216,.55);opacity:0;transition:opacity .8s;font-family:var(--f-body);font-size:8.5px;letter-spacing:.1em;line-height:1.55}
 html:not(.p2) #p2-inset,html:not(.p2) #p2-insetL{display:none}
 .tr{top:calc(66px + env(safe-area-inset-top,0px));right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));text-align:right;display:grid;gap:3px;font-variant-numeric:tabular-nums}
-.tr .clk{color:var(--ink);font-size:11px}
+.tr .kind{justify-self:end;color:var(--ink);font-size:9px;letter-spacing:.22em;padding:2px 6px;border:1px solid var(--faint);margin-bottom:6px}
+.tr .kind.model{border-style:dashed;color:var(--pdim)}
+.acq{display:grid;grid-template-columns:auto auto;column-gap:14px;row-gap:3px;margin:0;justify-content:end}
+.acq dt{color:var(--faint);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;text-align:right;padding-top:1px}
+.acq dd{margin:0;color:var(--ink);font-size:10px;text-align:right;white-space:nowrap}
+.acq dd.d{color:var(--pdim)}
+.bl .idx{color:var(--faint);font-size:9px;letter-spacing:.2em}
+.bl .sub{color:var(--pdim);font-size:9.5px;max-width:min(42vw,26rem);line-height:1.5;margin-top:-2px}
+.br span:first-child{color:var(--pdim)}
 .bl{left:calc(max(24px,7vw) + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));display:grid;gap:6px;font-variant-numeric:tabular-nums}
 .bl .spec{color:var(--ink);text-transform:uppercase;letter-spacing:.16em}
 .sb{display:flex;align-items:center;gap:10px;color:var(--ink);font-size:11px;white-space:nowrap}
 .sb .bar{height:3px;background:var(--ink);width:60px}
-.br{right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:calc(68px + env(safe-area-inset-bottom,0px));text-align:right;display:grid;gap:2px;font-size:8.5px;max-width:min(46vw,30rem);line-height:1.45;color:var(--faint)}
-html.p2 .foot{opacity:0;pointer-events:none}
-body.inv .edge,body.inv #p2-insetL{color:rgba(0,0,0,.7)}body.inv .sb,body.inv .tr .clk,body.inv .bl .spec{color:#000}body.inv .sb .bar{background:#000}
+.br{right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:calc(68px + env(safe-area-inset-bottom,0px));text-align:right;display:grid;gap:2px;font-size:8.5px;max-width:min(52vw,38rem);line-height:1.45;color:var(--faint)}
+html.p2 .foot,html.p2 .phrase{opacity:0;pointer-events:none}
+body.inv .edge,body.inv #p2-insetL{color:rgba(0,0,0,.7)}body.inv .sb,body.inv .acq dd,body.inv .tr .kind,body.inv .bl .spec{color:#000}body.inv .sb .bar{background:#000}
 body.inv .top,body.inv .phrase,body.inv .explore,body.inv .snd,body.inv .toc button[aria-current="true"]{color:#000}body.inv .toc button{color:rgba(0,0,0,.45)}
 body.inv .explore{border-bottom-color:rgba(0,0,0,.6)}body.inv .explore::after{border-left-color:#000}body.inv .phrase::before{background:rgba(0,0,0,.35)}
-@media (max-width:640px){.br{max-width:60vw}#p2-inset,#p2-insetL{display:none!important}.bl{left:calc(24px + env(safe-area-inset-left,0px))}}
+@media (max-width:640px){.acq .x{display:none}.bl .sub{max-width:60vw}.br{max-width:60vw}#p2-inset,#p2-insetL{display:none!important}.bl{left:calc(24px + env(safe-area-inset-left,0px))}}
 </style>
 
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -146,8 +154,8 @@ body.inv .explore{border-bottom-color:rgba(0,0,0,.6)}body.inv .explore::after{bo
 <canvas id="p2-tx" class="p2c" aria-hidden="true"></canvas>
 <canvas id="p2-inset" aria-hidden="true"></canvas>
 <div id="p2-insetL" aria-hidden="true"></div>
-<div class="edge tr"><span class="clk" id="p2-clk">t = 0</span><span id="p2-rate">Δt</span></div>
-<div class="edge bl"><span class="spec" id="p2-spec">—</span><div class="sb"><span class="bar" id="p2-bar"></span><span id="p2-sbl">—</span></div><span id="p2-mag">×</span></div>
+<div class="edge tr"><div class="kind" id="p2-kind">REC</div><dl class="acq" id="p2-acq"></dl></div>
+<div class="edge bl"><span class="idx" id="p2-idx">01 / 06</span><span class="spec" id="p2-spec">—</span><span class="sub" id="p2-sub"></span><div class="sb"><span class="bar" id="p2-bar"></span><span id="p2-sbl">—</span></div><span id="p2-mag">×</span></div>
 <div class="edge br" id="p2-cred"></div>
 
 <div id="intro">
@@ -1104,18 +1112,30 @@ const SL=[{m:0,at:0},{m:1,at:.80},{m:2,at:1.0},{m:3,at:2.0},{m:4,at:3.0},{m:5,at
 function slideAt(s){for(let i=1;i<SL.length;i++){const a=SL[i].at;if(s>=a-WW&&s<a+WW)return{A:SL[i-1].m,B:SL[i].m,k:(s-(a-WW))/(2*WW)};if(s<a-WW)return{A:SL[i-1].m,B:SL[i-1].m,k:0}}return{A:5,B:5,k:0}}
 const sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
 
-const SPEC=['human zygote','drosophila embryo','ileal villi · H&E','skeletal muscle · TEM','neuromuscular junction · EM','cortex · Brainbow × GCaMP'];
+const SPEC=['human embryo','drosophila embryo','ileal villi · H&E','skeletal muscle · TEM','neuromuscular junction · EM','mouse neurons · Brainbow × GCaMP6s'];
+// 標本の記録。出典：各論文の Methods／動画の説明文、Wikimedia Commons のファイル頁（2026-10-19 確認）
+const META=[
+  {sub:'Homo sapiens · thawed at 2PN, imaged to the 8-cell stage · cultured, unstained',acq:[['mode','darkfield / brightfield time-lapse'],['system','Auxogyn · Olympus ×10',1],['Δt','5 min']],dur:30.13},
+  {sub:'Drosophila melanogaster · cleavage cycles → gastrulation · live',acq:[['mode','time-lapse'],['lab','Tomancak Lab, MPI-CBG',1]],dur:30.0},
+  {sub:'Homo sapiens · terminal ileum, cross-section · H&E · surface relief modelled from the section',acq:[['section','H&E, fixed'],['camera','Olympus LC30',1],['motion','D. melanogaster larval midgut · live'],['capture','Olympus BX51 · UPlanFl 20× · 2 fps',1]],dur:57.6},
+  {sub:'Homo sapiens · skeletal muscle, longitudinal section · A / I bands, Z-lines, paired mitochondria',acq:[['mode','TEM'],['scope','JEOL 100CX',1]],dur:12.97},
+  {sub:'neuromuscular junction, cross-section · axon terminal over muscle fibre, junctional folds',acq:[['mode','electron micrograph'],['scale','0.3 µm (as published)',1]]},
+  {sub:'Mus musculus · Brainbow transgenic labels · with GCaMP6s in GAD2⁺ neurons, dorsal pons (composite of two records)',acq:[['labels','Brainbow, combinatorial XFP'],['Ca²⁺','Inscopix microendoscope · GRIN 0.5 mm',1]],dur:37.92}
+];
+const MOLACQ=[['process','Brownian + collision',1],['Stokes–Einstein','310 K · η 3 mPa·s'],['crowding','φ ≈ 0.3',1]];
 const CRED=[
-  ['Human zygote — Vera-Rodriguez M et al., Nat Commun 6:7601 (2015), CC BY 4.0','FUCCI — Sakaue-Sawano A et al., BMC Cell Biol 12:2 (2011), CC BY 2.0','Breathing — hugh, PD · Molecules: Stokes–Einstein model, 310 K, η 3 mPa·s, φ ≈ 0.3'],
-  ['Drosophila cleavage and gastrulation — Bruno C. Vellutini, CC BY-SA 4.0 (unedited)'],
-  ['Ileal villi, H&E — Mikael Häggström, CC0','Midgut peristalsis — LaJeunesse D et al., BMC Physiol 10:14 (2010), CC BY 2.0'],
-  ['Human skeletal muscle, TEM — Louisa Howard, PD','hiPSC cardiomyocytes — Eng G et al., Nat Commun 7:10312 (2016), CC BY 4.0','Heart 61 bpm — Benboncan, CC BY 3.0'],
-  ['Neuromuscular junction, EM — NIMH, PD'],
-  ['Brainbow — Stephen J Smith (2007), CC BY 3.0','Ca²⁺ imaging — Cox J et al., Nat Commun 7:10763 (2016), CC BY 4.0']
+  ['Human embryo — Vera-Rodriguez M et al., Nat Commun 6:7601 (2015) · doi:10.1038/ncomms8601 · CC BY 4.0','Fucci2 HeLa — Sakaue-Sawano A et al., BMC Cell Biol 12:2 (2011) · doi:10.1186/1471-2121-12-2 · CC BY 2.0','Breathing — hugh, PD · Molecules: Stokes–Einstein model, 310 K, η 3 mPa·s, φ ≈ 0.3'],
+  ['Drosophila cleavage and gastrulation — Bruno C. Vellutini (2019), CC BY-SA 4.0'],
+  ['Ileal villi, H&E — Mikael Häggström (2021), CC0','Midgut peristalsis — LaJeunesse D et al., BMC Physiol 10:14 (2010) · doi:10.1186/1472-6793-10-14 · CC BY 2.0'],
+  ['Human skeletal muscle, TEM — Louisa Howard, PD','Stem-cell-derived cardiomyocytes — Eng G et al., Nat Commun 7:10312 (2016) · doi:10.1038/ncomms10312 · CC BY 4.0','Heartbeat — Benboncan (2008, Freesound), CC BY 3.0'],
+  ['Neuromuscular junction, EM — NIMH Synapse Web, PD'],
+  ['Brainbow — courtesy J. Lichtman (Livet et al. 2007), via Smith SJ, Curr Opin Neurobiol (2007) · CC BY 3.0','Ca²⁺ imaging — Cox J, Pinto L, Dan Y, Nat Commun 7:10763 (2016) · doi:10.1038/ncomms10763 · CC BY 4.0']
 ];
 const $=id=>document.getElementById(id);
-const el={clk:$('p2-clk'),rate:$('p2-rate'),spec:$('p2-spec'),bar:$('p2-bar'),sbl:$('p2-sbl'),mag:$('p2-mag'),cred:$('p2-cred')};
-let lastSpec=-1,lastStage=-1,lastCred='';
+const el={kind:$('p2-kind'),acq:$('p2-acq'),idx:$('p2-idx'),sub:$('p2-sub'),spec:$('p2-spec'),bar:$('p2-bar'),sbl:$('p2-sbl'),mag:$('p2-mag'),cred:$('p2-cred')};
+let lastSpec=-1,lastStage=-1,lastCred='',lastAcq='',lastSub='';
+const clip=(t,d)=>{const f=x=>{x=Math.max(0,x||0);return String(Math.floor(x/60)).padStart(2,'0')+':'+(x%60).toFixed(1).padStart(4,'0')};return f(t)+(d?' / '+f(d):'')};
+const dur=t=>{t=Math.max(0,t);const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=Math.floor(t%60);return h?h+' h '+String(m).padStart(2,'0')+' min':m?m+' min '+String(x).padStart(2,'0')+' s':t.toFixed(1)+' s'};
 function fmtLen(um){if(um<1)return +(um*1000).toPrecision(3)+' nm';if(um<1000)return +um.toPrecision(3)+' µm';if(um<1e6)return +(um/1000).toPrecision(3)+' mm';if(um<1e9)return +(um/1e6).toPrecision(3)+' m';if(um<1e12)return +(um/1e9).toPrecision(3)+' km';
   const e=Math.floor(Math.log10(um/1e9));return '1'+'0'.repeat(Math.min(e,400))+' km'}
 function niceBar(pxPerUm,target){const um=target/pxPerUm;const p=Math.pow(10,Math.floor(Math.log10(um)));const n=um/p;const m=n<1.5?1:n<3.5?2:n<7.5?5:10;return m*p}
@@ -1191,22 +1211,25 @@ function update(now){
   renderer.setRenderTarget(rtB);renderer.render(dofScene,oCam);
   renderer.setRenderTarget(null);renderer.render(lensScene,oCam);
   // ── UI: scale bar, magnification, clock
-  let pxPerUm,specName=SPEC[cur],clk='',rate='';
+  let pxPerUm,specName=SPEC[cur],kind='REC',sub=META[cur].sub,acq=META[cur].acq.slice();const M=META[cur];
   if(cur===0){pxPerUm=R/(W*.5)/DPR;
-    if(molVis>.5){clk='t = '+(simT*1e6).toFixed(3)+' µs';rate='Δt ×2.0e-7'}
-    else{clk='t = '+SRC.emb.t.toFixed(1)+' s of clip';rate='time-lapse · '+SRC.emb.mode}
-    specName=W<.8?'cytoplasm · model':W<30?'cytoplasm · below optical limit':SPEC[0]}
-  else if(cur===1){pxPerUm=R/(Wd*.5)/DPR;clk='t = in frame';rate='Δt src · '+SRC.dros.mode}
-  else if(cur===2){pxPerUm=vilPxPerUm||R/450/DPR;clk='t = '+hms(SRC.peri.t||time)+'.'+String(Math.floor((time%1)*10));rate='Δt ×1 · peristalsis '+(SRC.peri.mode==='video'?'live':'model')}
-  else if(cur===3){pxPerUm=R/(Wt*.5)/DPR;clk=clock?'drive  clock 1.000 s':'drive  heart 61 bpm';rate=clock?'1872':'cardiomyocytes · '+SRC.cardio.mode}
-  else if(cur===4){pxPerUm=R/(Wn*.5)/DPR;clk='t = fixed';rate='synapse'}
-  else{pxPerUm=R/(Wb*.5)/DPR;clk='t = '+hms(SRC.ca.t)+'';rate='ΔF/F · GCaMP · '+SRC.ca.mode}
+    if(molVis>.5){kind='MODEL';specName='cytoplasm';sub='crowded cytoplasm at 1 nm scale · '+N.toLocaleString('en-US')+' molecules in 5 size classes (3–20 nm) · simulated, not recorded';
+      acq=MOLACQ.concat([['sim t',(simT*1e6).toFixed(3)+' µs'],['slowed','×5,000,000',1]])}
+    else{if(W<30){kind='REC · BEYOND RESOLUTION';specName='cytoplasm'}acq.push(['clip',clip(SRC.emb.t,M.dur),1])}}
+  else if(cur===1){pxPerUm=R/(Wd*.5)/DPR;acq.push(['clip',clip(SRC.dros.t,M.dur)])}
+  else if(cur===2){pxPerUm=vilPxPerUm||R/450/DPR;kind='REC + MODEL';const t=SRC.peri.mode==='video'?SRC.peri.t:time%M.dur;
+    acq.push(['real t',(t*.5).toFixed(1)+' s · playback 2×'])}
+  else if(cur===3){pxPerUm=R/(Wt*.5)/DPR;kind='REC + MODEL';acq.push(['drive',clock?'clock 1.000 s':'heartbeat 61 bpm (audio)'])}
+  else if(cur===4){pxPerUm=R/(Wn*.5)/DPR}
+  else{pxPerUm=R/(Wb*.5)/DPR;kind='REC × 2';acq.push(['ΔF/F','GCaMP6s'],['real t',dur(SRC.ca.t*5)+' · playback 5×'])}
   let um=niceBar(pxPerUm,90),barPx=um*pxPerUm,label=fmtLen(um);
   const over=sm((s-3.86)/.12);
   if(over>0){const e=over*24;um=50*Math.pow(10,e);label=fmtLen(um);barPx=Math.min(VW*.9,90*(1+e*.4))}
   el.bar.style.width=barPx.toFixed(1)+'px';el.sbl.textContent=label;
-  el.mag.textContent='×'+Math.round(pxPerUm*264.6).toLocaleString('en-US')+(cur===0&&W<30&&W>.8?'  · λ/2NA 0.37 µm':'');
-  el.clk.textContent=clk;el.rate.textContent=rate;el.spec.textContent=specName;
+  el.mag.textContent='×'+Math.round(pxPerUm*264.6).toLocaleString('en-US')+' on this screen';
+  el.spec.textContent=specName;el.idx.textContent=String(cur+1).padStart(2,'0')+' / 06';el.kind.textContent=kind;el.kind.classList.toggle('model',kind==='MODEL');
+  const ak=acq.map(a=>a.join('|')).join('/');if(ak!==lastAcq){lastAcq=ak;el.acq.innerHTML=acq.map(([k,v,x])=>`<dt${x?' class="x"':''}>${k}</dt><dd${x?' class="x d"':''}>${v}</dd>`).join('')}
+  if(sub!==lastSub){lastSub=sub;el.sub.textContent=sub}
   const credKey=String(cur);if(credKey!==lastCred){lastCred=credKey;el.cred.innerHTML=CRED[cur].map(t=>`<span>${t}</span>`).join('')}
   document.body.classList.toggle('inv',white>.5);
   // ── inset reticle: second channel (FUCCI in LIVE, beating cells in HOLD)
@@ -1215,7 +1238,7 @@ function update(now){
   if(insOn){const S=inset.width,src=SRC[insOn];ix.clearRect(0,0,S,S);ix.save();ix.beginPath();ix.arc(S/2,S/2,S/2-2*DPR,0,6.283);ix.clip();ix.fillStyle='#000';ix.fillRect(0,0,S,S);
     if(insOn==='fucci')ix.drawImage(src.cv,20,30,300,226,-S*.15,0,S*1.3,S);else ix.drawImage(src.cv,40,0,240,240,0,0,S,S);ix.restore();
     ix.strokeStyle='rgba(239,232,216,.45)';ix.lineWidth=DPR;ix.beginPath();ix.arc(S/2,S/2,S/2-2*DPR,0,6.283);ix.stroke();
-    insetL.textContent=insOn==='fucci'?'CH2  FUCCI  ·  '+src.mode:'CH2  hiPSC-CM  ·  '+src.mode}
+    insetL.innerHTML=insOn==='fucci'?'CH2  HeLa · Fucci2<br>40× NA 0.90 · Δt 20.5 min<br>real t '+dur(src.t*7000):'CH2  cardiomyocytes<br>phase contrast · 37 °C<br>paced 0.5 Hz'}
   // ── reticle + eyepiece micrometer (ticks are real µm at the current magnification)
   ux.clearRect(0,0,ui.width,ui.height);
   if(white<.5){ux.strokeStyle='rgba(239,232,216,.28)';ux.lineWidth=DPR;ux.beginPath();ux.arc(C.x,C.y,R+6*DPR,0,6.283);ux.stroke();
