@@ -141,12 +141,12 @@ html.p2 .foot,html.p2 .phrase{opacity:0;pointer-events:none}
 body.inv .edge,body.inv #p2-insetL{color:rgba(0,0,0,.7)}body.inv .sb,body.inv .acq dd,body.inv .tr .kind,body.inv .bl .spec{color:#000}body.inv .sb .bar{background:#000}
 body.inv .top,body.inv .phrase,body.inv .explore,body.inv .snd,body.inv .toc button[aria-current="true"]{color:#000}body.inv .toc button{color:rgba(0,0,0,.45)}
 body.inv .explore{border-bottom-color:rgba(0,0,0,.6)}body.inv .explore::after{border-left-color:#000}body.inv .phrase::before{background:rgba(0,0,0,.35)}
-@media (max-width:640px){.acq .x{display:none}.bl .sub{max-width:60vw}.br{max-width:60vw}#p2-inset,#p2-insetL{display:none!important}.bl{left:calc(24px + env(safe-area-inset-left,0px))}}
+@media (max-width:640px){html.p2 .toc li:not(:has([aria-current="true"])){display:none}.tr{top:calc(64px + env(safe-area-inset-top,0px));right:calc(24px + env(safe-area-inset-right,0px))}.acq{max-width:58vw}.acq dd{font-size:9px;white-space:normal}.acq .x{display:none}.bl .sub{display:none}.br{left:calc(24px + env(safe-area-inset-left,0px));right:calc(24px + env(safe-area-inset-right,0px));bottom:calc(66px + env(safe-area-inset-bottom,0px));max-width:none;text-align:left;font-size:7.5px}.bl{bottom:calc(78px + var(--credH,40px) + env(safe-area-inset-bottom,0px))}#p2-inset,#p2-insetL{display:none!important}.bl{left:calc(24px + env(safe-area-inset-left,0px))}}
 </style>
 
 <canvas id="gl" aria-hidden="true"></canvas>
 <video class="vid" id="v1" muted loop playsinline preload="auto" aria-hidden="true"><source src="media/261018_mountain.webm" type="video/webm"><source src="media/261018_mountain.mp4" type="video/mp4"></video>
-<video class="vid" id="v2" muted loop playsinline preload="auto" aria-hidden="true"><source src="media/261018_ice.webm" type="video/webm"><source src="media/261018_ice.mp4" type="video/mp4"></video>
+
 <canvas id="tx" aria-hidden="true"></canvas>
 <div id="flash" aria-hidden="true"></div>
 <div id="shade" aria-hidden="true"></div>
@@ -180,7 +180,7 @@ body.inv .explore{border-bottom-color:rgba(0,0,0,.6)}body.inv .explore::after{bo
 </ul></nav>
 <div class="phrase" id="phrase" aria-live="polite"></div>
 <a class="explore" href="#contact" id="explore">Contact</a>
-<div class="foot"><span class="cred">Footage: Capricorn4049, “Büelenhorn (Monstein), aerial video” CC BY-SA 4.0 / Blagoj Klincharski, “The Gullet, Antarctica” CC BY 3.0 — Wikimedia Commons</span><a href="https://embeddedblue.com" target="_blank" rel="noopener">Embedded Blue Inc.</a><span>Cultural Placemaking</span><span>© 2026</span></div>
+<div class="foot"><span class="cred">Footage: Capricorn4049, “Büelenhorn (Monstein), aerial video” CC BY-SA 4.0 — Wikimedia Commons</span><a href="https://embeddedblue.com" target="_blank" rel="noopener">Embedded Blue Inc.</a><span>Cultural Placemaking</span><span>© 2026</span></div>
 <button class="snd" id="snd" aria-pressed="false" aria-label="Sound on"><span></span><span></span><span></span><span></span></button>
 <div class="cur" id="cur" aria-hidden="true"><div class="ring"></div><div class="dot"></div></div>
 
@@ -558,12 +558,12 @@ holdBtn.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('pointerup',()=>holding=false);
 holdBtn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();startHold()}});
 holdBtn.addEventListener('keyup',()=>holding=false);
-const vids=[document.getElementById('v1'),document.getElementById('v2')];
+const vids=[document.getElementById('v1')];
 /* ───────── 解放後の世界：自分を包む湾曲スクリーンに実写の自然。ドラッグで見回せる ───────── */
 const natScene=new THREE.Scene(),cam360=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.05,200);cam360.rotation.order='YXZ';
 const vts=vids.map(v=>{const t=new THREE.VideoTexture(v);t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;return t});
 const ARC=2.5,RAD=10,HGT=RAD*ARC*9/16;
-const UN={t1:{value:vts[0]},t2:{value:vts[1]},uMix:{value:0},uTime:{value:0},uIn:{value:0},uHit:{value:0},uSeed:{value:0}};
+const UN={t1:{value:vts[0]},t2:{value:vts[0]},uMix:{value:0},uTime:{value:0},uIn:{value:0},uHit:{value:0},uSeed:{value:0}};
 const screen=new THREE.Mesh(new THREE.CylinderGeometry(RAD,RAD,HGT,128,1,true,Math.PI-ARC/2,ARC),new THREE.ShaderMaterial({uniforms:UN,side:THREE.BackSide,
   vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
   fragmentShader:`uniform sampler2D t1,t2;uniform float uMix,uTime,uIn,uHit,uSeed;varying vec2 vUv;
@@ -579,7 +579,7 @@ natScene.add(screen);
 const GW=SMALL?220:320,GH=Math.round(GW*9/16),NP=GW*GH,uvA=new Float32Array(NP*2),rnA=new Float32Array(NP);
 for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){const k=j*GW+i;uvA[k*2]=(i+.5+(Math.random()-.5)*.6)/GW;uvA[k*2+1]=(j+.5+(Math.random()-.5)*.6)/GH;rnA[k]=Math.random()}
 const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(NP*3),3));cg.setAttribute('aUV',new THREE.BufferAttribute(uvA,2));cg.setAttribute('aR',new THREE.BufferAttribute(rnA,1));
-const UC={t1:{value:vts[0]},t2:{value:vts[1]},uMix:{value:0},uTime:{value:0},uSettle:{value:0},uScatter:{value:0},uAlpha:{value:0},uPR:{value:DPR},uTouch:{value:new THREE.Vector4(0,0,0,-99)}};
+const UC={t1:{value:vts[0]},t2:{value:vts[0]},uMix:{value:0},uTime:{value:0},uSettle:{value:0},uScatter:{value:0},uAlpha:{value:0},uPR:{value:DPR},uTouch:{value:new THREE.Vector4(0,0,0,-99)}};
 const cloud=new THREE.Points(cg,new THREE.ShaderMaterial({uniforms:UC,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
   vertexShader:`uniform sampler2D t1,t2;uniform float uMix,uTime,uSettle,uScatter,uAlpha,uPR;uniform vec4 uTouch;attribute vec2 aUV;attribute float aR;varying vec3 vC;varying float vA;
   void main(){vec3 c=mix(texture2D(t1,aUV).rgb,texture2D(t2,aUV).rgb,uMix);float l=dot(c,vec3(.3,.59,.11));
@@ -675,7 +675,7 @@ function update(now){
   if(inP2)tg.clearRect(0,0,innerWidth,innerHeight);else drawText(s,time,dt);
   // 一点がほどけて、実写の自然へ
   const rel=bump(s,5.5,.18);flashEl.style.opacity=Math.min(1,rel*1.1);
-  const nat=sm((s-5.45)/.25),v2w=sm((s-6.45)/.45);
+  const nat=sm((s-5.45)/.25),v2w=0;
   vids.forEach((v,i)=>{const want=s>5.3&&(i===0?v2w<.99:v2w>.01);if(want&&v.paused)v.play().catch(()=>{});if(!want&&!v.paused)v.pause()});
   look.scatter=(look.scatter||0)*Math.pow(.3,dt);
   UC.uMix.value=v2w;UC.uTime.value=time;UC.uSettle.value=sm((s-5.55)/.55);UC.uScatter.value=look.scatter;UC.uAlpha.value=nat*(1-sm((s-5.85)/.5)*.82);
@@ -1233,7 +1233,7 @@ function update(now){
   el.spec.textContent=specName;el.idx.textContent=String(cur+1).padStart(2,'0')+' / 06';el.kind.textContent=kind;el.kind.classList.toggle('model',kind==='MODEL');
   const ak=acq.map(a=>a.join('|')).join('/');if(ak!==lastAcq){lastAcq=ak;el.acq.innerHTML=acq.map(([k,v,x])=>`<dt${x?' class="x"':''}>${k}</dt><dd${x?' class="x d"':''}>${v}</dd>`).join('')}
   if(sub!==lastSub){lastSub=sub;el.sub.textContent=sub}
-  const credKey=String(cur);if(credKey!==lastCred){lastCred=credKey;el.cred.innerHTML=CRED[cur].map(t=>`<span>${t}</span>`).join('')}
+  const credKey=String(cur);if(credKey!==lastCred){lastCred=credKey;el.cred.innerHTML=CRED[cur].map(t=>`<span>${t}</span>`).join('');document.documentElement.style.setProperty('--credH',el.cred.offsetHeight+'px')}
   document.body.classList.toggle('inv',white>.5);
   // ── inset reticle: second channel (FUCCI in LIVE, beating cells in HOLD)
   const insOn=(cur===0&&W>60&&s<.78)?'fucci':(cur===3&&s>2.05&&s<2.95)?'cardio':null;
