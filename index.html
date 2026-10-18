@@ -566,7 +566,7 @@ const cloud=new THREE.Points(cg,new THREE.ShaderMaterial({uniforms:UC,transparen
     vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=(30.+aR*20.)*uPR/(-mv.z)*(1.+bloom*1.5);
     vC=c*(1.+bloom*1.6);vA=uAlpha*(.5+.5*aR)+bloom*.6;}`,
   fragmentShader:`varying vec3 vC;varying float vA;void main(){vec2 q=gl_PointCoord-.5;float a=smoothstep(.5,.0,length(q));gl_FragColor=vec4(vC,a*vA);}`}));
-cloud.frustumCulled=false;natScene.add(cloud);
+cloud.frustumCulled=false;
 const rayN=new THREE.Raycaster();
 function touchNature(cx,cy){rayN.setFromCamera({x:cx/innerWidth*2-1,y:-(cy/innerHeight)*2+1},cam360);const d=rayN.ray.direction;UC.uTouch.value.set(d.x,d.y*RAD/Math.max(.2,Math.hypot(d.x,d.z)),d.z,UC.uTime.value);
   if(A.on){const sc=[67,69,71,74,76,79,81,83];A.hit(mtof(sc[(Math.random()*sc.length)|0]),.06,3,3.51)}if(!FINE&&navigator.vibrate)try{navigator.vibrate(10)}catch(e){}}
