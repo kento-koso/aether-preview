@@ -580,7 +580,7 @@ const snow=new THREE.Points(sg,new THREE.ShaderMaterial({uniforms:US,transparent
   void main(){vec3 p=position;p.y=mod(p.y-uTime*(.18+aR*.35)+4.,8.)-4.;p.x+=sin(uTime*.6+aR*30.)*.15+uWind.x*(1.5+aR*3.);p.z+=uWind.y*(1.+aR*2.);
     vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;float ps=(14.+aR*26.)*uPR/(-mv.z);gl_PointSize=ps;vA=uIn*(.25+.5*aR)*smoothstep(.4,1.5,-mv.z);}`,
   fragmentShader:`varying float vA;void main(){vec2 c=gl_PointCoord-.5;float a=smoothstep(.5,0.,length(c));gl_FragColor=vec4(vec3(1.),a*a*vA);}`}));
-snow.frustumCulled=false;natScene.add(snow);
+snow.frustumCulled=false;
 const look={yaw:0,pitch:0,ty:0,tp:0,vx:0,drag:false,lx:0,ly:0,wind:new THREE.Vector2()};
 addEventListener('resize',()=>{cam360.aspect=innerWidth/innerHeight;cam360.updateProjectionMatrix()});
 addEventListener('pointerdown',e=>{if(s<5.5||e.target.closest('button,a,input,select,textarea,form'))return;look.drag=true;look.lx=e.clientX;look.ly=e.clientY;look.moved=0;root.classList.add('grab')});
@@ -604,9 +604,9 @@ let lastPh=-1;
 let wasP2=false,afterOn=false,afterT=-99,holdT=0,nextPulse=0,nextHit=0,s=0,last=performance.now(),lastY=scrollY,vel=0,t0=performance.now(),forceS=null,lastYr='';
 const easeOutExpo=x=>x>=1?1:1-Math.pow(2,-10*x);
 // スマホ：30fpsに抑え、1秒ごとの実測で描画解像度を段階的に下げる（下げるだけ。上げ直してちらつかせない）
-let lastRun=0,gN=0,gSum=0,gT=0;const DPRS=[1,.8,.65,.5];let gLv=0;
+let lastRun=0,gN=0,gSum=0,gT=0;const DPRS=[1,.8,.65,.5];let gLv=0;if(LOW){renderer.setPixelRatio(1.25*DPRS[1]);composer.setPixelRatio(DPRS[1]);gLv=1}
 function frame(now){requestAnimationFrame(frame);if(LOW){if(now-lastRun<30)return;const d=now-lastRun;lastRun=now;if(d<200){gN++;gSum+=d}
-  if(now-gT>1000){if(gN>8&&gSum/gN>45&&gLv<DPRS.length-1){gLv++;const k=DPRS[gLv];renderer.setPixelRatio(1.25*k);composer.setPixelRatio(k);window.P2&&P2.setDPR(k)}gT=now;gN=0;gSum=0}}
+  if(now-gT>1000){if(gN>8&&gSum/gN>38&&gLv<DPRS.length-1){gLv++;const k=DPRS[gLv];bloom.enabled=gLv<2;renderer.setPixelRatio(1.25*k);composer.setPixelRatio(k);window.P2&&P2.setDPR(k)}gT=now;gN=0;gSum=0}}
   update(now)}
 function update(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;const time=(now-t0)/1000*(RM?.35:1);
@@ -754,7 +754,7 @@ const canvas=document.getElementById('p2-gl');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'high-performance'});
 renderer.outputColorSpace=THREE.LinearSRGBColorSpace;renderer.toneMapping=THREE.NoToneMapping;
 const SMALL=Math.min(innerWidth,innerHeight)<700;
-const LOW=SMALL||!matchMedia('(pointer:fine)').matches;let DPR=Math.min(devicePixelRatio||1,LOW?1:1.5);renderer.setPixelRatio(DPR);
+const LOW=SMALL||!matchMedia('(pointer:fine)').matches;let DPR=Math.min(devicePixelRatio||1,LOW?.8:1.5);renderer.setPixelRatio(DPR);
 let VW=innerWidth,VH=innerHeight,R=0;
 const rtOpt={depthBuffer:true,type:THREE.UnsignedByteType};
 const rtA=new THREE.WebGLRenderTarget(4,4,rtOpt),rtB=new THREE.WebGLRenderTarget(4,4,rtOpt),rtV=new THREE.WebGLRenderTarget(4,4,rtOpt);
