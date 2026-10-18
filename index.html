@@ -1,0 +1,1225 @@
+<meta charset="utf-8">
+<title>AETHER</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@200;300;400&display=swap">
+<style>
+/* Layout: 人の体と社会の歴史を、スクロール1本で辿る。
+   v7：生命 → 食べる → 持つ → 知る は顕微鏡の実標本（p2）、言葉の洪水 → LLMへの収束 → 感じる（実写の自然）→ 問い合わせ は v6 */
+:root{
+  --void:#04060a;
+  --light:#efe8d8;
+  --aether:#a4b6f0;
+  --dim:#8f8c86;
+  --line:rgba(239,232,216,.18);
+  --f-body:"Geist Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --f-latin:"Geist Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{background:#000;color:var(--light)}
+html.locked,html.locked body{overflow:hidden;height:100%}
+body{font-family:var(--f-body);font-weight:200;font-size:13px;line-height:1.9;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+@media (pointer:fine){html.cur-on,html.cur-on *{cursor:none!important}}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.vid{position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
+#tx{position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+#flash{position:fixed;inset:0;z-index:3;background:#fff;opacity:0;pointer-events:none}
+#after{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(70,110,255,.55),rgba(40,70,200,.25));mix-blend-mode:screen}
+#shade{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(4,6,10,.15),rgba(4,6,10,.75))}
+#word-unused{position:fixed;inset:0;z-index:4;display:grid;place-items:center;pointer-events:none;opacity:0;font-family:var(--f-latin);font-weight:400;font-size:clamp(3.2rem,13vw,10rem);letter-spacing:.38em;text-indent:.38em;color:#fff;text-shadow:0 0 40px rgba(0,0,0,.35)}
+
+#intro{position:fixed;inset:0;z-index:20;display:grid;place-items:center;transition:opacity 1.6s ease}
+#intro.gone{opacity:0;pointer-events:none}
+.hold{position:relative;width:132px;height:132px;border:0;background:none;padding:0;color:var(--light);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.hold svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.hold .track{stroke:rgba(239,232,216,.28)}
+.hold .fill{stroke:var(--light)}
+.hold .breath{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(239,232,216,.35);animation:breath 3.6s ease-in-out infinite}
+@keyframes breath{0%,100%{transform:scale(.72);opacity:0}45%{opacity:.7}100%{transform:scale(1.25)}}
+.hold:focus-visible{outline:1px solid var(--aether);outline-offset:10px;border-radius:50%}
+.snd-hint{position:absolute;bottom:calc(36px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);opacity:.45;width:22px;height:22px}
+
+/* 枠：落合陽一サイトに倣い、文字は四隅と上端に小さく。中央は作品に譲る */
+.top{position:fixed;z-index:10;top:calc(26px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);font-family:var(--f-latin);font-weight:300;font-size:14px;letter-spacing:.5em;text-indent:.5em;color:var(--light)}
+.toc{position:fixed;z-index:10;top:calc(52px + env(safe-area-inset-top,0px));left:calc(max(24px,7vw) + env(safe-area-inset-left,0px));display:grid;gap:.1rem;margin:0;padding:0;list-style:none}
+.toc button{font:inherit;font-family:var(--f-body);font-weight:300;font-size:11px;letter-spacing:.08em;color:rgba(239,232,216,.42);background:none;border:0;padding:.18rem 0;display:flex;gap:1.1em;align-items:baseline;transition:color .5s;text-align:left}
+.toc button i{font-style:normal;font-family:var(--f-latin);font-weight:200;font-size:10px;letter-spacing:.04em;min-width:5.6em;opacity:.8;font-variant-numeric:tabular-nums}
+.toc button[aria-current="true"]{color:var(--light)}
+.toc button:hover{color:var(--light)}
+.toc button:focus-visible{outline:1px solid var(--aether);outline-offset:3px}
+.phrase{position:fixed;z-index:10;left:calc(max(24px,7vw) + 6.6em + env(safe-area-inset-left,0px));bottom:calc(max(80px,17vh) + env(safe-area-inset-bottom,0px));display:grid;gap:.9rem;font-family:var(--f-body);font-weight:300;font-size:11px;letter-spacing:.24em;line-height:1;color:var(--light);transition:opacity .7s;text-transform:uppercase}
+.phrase::before{content:"";width:44px;height:1px;background:rgba(239,232,216,.35);margin-bottom:.9rem}
+.phrase.fade{opacity:0}
+.explore{position:fixed;z-index:10;right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));font-family:var(--f-latin);font-weight:300;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--light);text-decoration:none;display:flex;gap:1.2em;align-items:center;padding-bottom:6px;border-bottom:1px solid rgba(239,232,216,.6)}
+.explore::after{content:"";border:4px solid transparent;border-left:6px solid var(--light);border-right:0}
+.foot{position:fixed;z-index:10;left:calc(max(24px,7vw) + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));display:grid;gap:.15rem;font-family:var(--f-latin);font-weight:200;font-size:9.5px;letter-spacing:.04em;color:rgba(239,232,216,.7)}
+.foot a{color:inherit;text-decoration:none}.foot .cred{opacity:0;transition:opacity .8s;max-width:34rem;line-height:1.5;margin-bottom:.4rem}body.nature .foot .cred{opacity:.7}.foot a:hover{color:var(--light)}
+.mark{display:none;position:fixed;z-index:10;top:calc(22px + env(safe-area-inset-top,0px));left:calc(24px + env(safe-area-inset-left,0px));width:26px;height:26px;opacity:.85}
+/* 時代の目盛り：数字だけを置く（富岡製糸場1872／インターネット元年1995／ChatGPT公開2022） */
+.yr{display:none;position:fixed;z-index:10;left:calc(24px + env(safe-area-inset-left,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));font-family:var(--f-latin);font-size:1.05rem;letter-spacing:.18em;color:var(--light);opacity:.75;font-variant-numeric:tabular-nums;transition:opacity .6s}
+.prog{display:none;position:fixed;z-index:10;right:calc(22px + env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);height:42vh;width:1px;background:var(--line)}
+.prog b{position:absolute;left:-1px;top:0;width:3px;height:0;background:var(--light)}
+.snd{position:fixed;z-index:10;right:calc(max(14px,7vw) - 10px + env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));width:44px;height:44px;border:0;background:none;color:var(--light);display:flex;align-items:center;justify-content:center;gap:3px;padding:0}
+.snd span{width:2px;height:4px;background:currentColor;opacity:.8}
+.snd[aria-pressed="true"] span{animation:eq 1.1s ease-in-out infinite}
+.snd[aria-pressed="true"] span:nth-child(2){animation-delay:-.4s}.snd[aria-pressed="true"] span:nth-child(3){animation-delay:-.7s}.snd[aria-pressed="true"] span:nth-child(4){animation-delay:-.2s}
+@keyframes eq{0%,100%{height:4px}50%{height:16px}}
+.snd:focus-visible{outline:1px solid var(--aether);outline-offset:4px}
+html.locked .top,html.locked .toc,html.locked .phrase,html.locked .explore,html.locked .foot,html.locked .snd{opacity:0;pointer-events:none}
+.top,.toc,.explore,.foot,.snd{transition:opacity 2s ease 1s}
+
+.cur{position:fixed;z-index:30;left:0;top:0;pointer-events:none;mix-blend-mode:difference}
+.cur .dot{position:absolute;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:#fff}
+.cur .ring{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:1px solid rgba(255,255,255,.7);transition:width .35s,height .35s,margin .35s,background .35s}
+.cur.caret .ring{width:10px;height:18px;margin:-9px 0 0 -5px;border-radius:0;border:0;background:rgba(255,255,255,.85);animation:blink 1s steps(1) infinite;transition:none}
+.cur.caret .dot{display:none}
+@keyframes blink{50%{opacity:0}}
+.cur.orb .ring{width:90px;height:90px;margin:-45px 0 0 -45px;border:0;background:radial-gradient(circle,rgba(255,255,255,.22),rgba(255,255,255,0) 65%)}
+html.grab,html.grab *{cursor:none}
+.cur.big .ring{width:64px;height:64px;margin:-32px 0 0 -32px;background:rgba(255,255,255,.06)}
+@media (pointer:coarse){.cur{display:none}}
+
+main{position:relative;z-index:6}
+.mk{pointer-events:none}
+.contact{pointer-events:auto;min-height:100vh;display:grid;align-content:center;padding-block:14vh;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+form{max-width:26rem;width:100%;margin:0 auto;display:grid;gap:1.6rem;padding:0;background:none;border:0;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.ft{font-family:var(--f-latin);font-weight:300;font-size:11px;letter-spacing:.24em;text-transform:uppercase;margin:0 0 1rem;color:rgba(239,232,216,.6)}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr));gap:1.6rem}
+.f{display:grid;gap:.35rem;min-width:0}
+.f label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(239,232,216,.7)}
+.f input,.f select,.f textarea{font:inherit;font-size:13px;color:var(--light);background:transparent;border:0;border-bottom:1px solid var(--line);padding:.5rem 0;border-radius:0;width:100%;transition:border-color .3s}
+.f select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(-45deg,transparent 50%,var(--dim) 50%);background-position:calc(100% - 10px) 55%,calc(100% - 5px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+.f select option{background:#0b0e14}
+.f textarea{min-height:5rem;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-bottom-color:var(--aether)}
+.send{justify-self:start;font-family:var(--f-latin);font-weight:300;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--light);background:none;border:0;border-bottom:1px solid rgba(239,232,216,.6);padding:.4rem 0;display:flex;gap:1.2em;align-items:center}
+.send::after{content:"";border:4px solid transparent;border-left:6px solid var(--light);border-right:0}
+.send:hover{color:var(--aether)}
+.send:focus-visible{outline:1px solid var(--aether);outline-offset:4px}
+.note{margin:0;font-size:.8rem;color:var(--aether)}
+footer{display:none;position:relative;z-index:6;padding-block:2.4rem calc(2.4rem + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:.78rem;letter-spacing:.08em;color:rgba(239,232,216,.75);display:flex;flex-wrap:wrap;gap:.6rem 2rem;justify-content:space-between;align-items:center;border-top:1px solid var(--line);background:rgba(4,6,10,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+footer a{color:var(--light);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:2px}
+footer a:hover{border-bottom-color:var(--aether)}
+footer small{font-size:.68rem;color:var(--dim);flex-basis:100%}
+@media (max-width:640px){form{padding:2rem 1.25rem}.toc{top:calc(64px + env(safe-area-inset-top,0px))}.phrase{left:calc(24px + env(safe-area-inset-left,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px))}.explore{bottom:calc(30px + env(safe-area-inset-bottom,0px))}.foot{display:none}}
+@media (prefers-reduced-motion:reduce){.hold .breath{animation:none}}
+
+/* 冒頭（生命→食べる→持つ→知る）＝顕微鏡（p2）。レンズ1枚の文法のまま、標本だけを替える。
+   入口の光の点に潜り込むと×1,000,000の細胞質、スケールが測れなくなった瞬間に言葉の世界へ反転する */
+.p2c{position:fixed;inset:0;width:100%;height:100%;display:block;opacity:0;pointer-events:none}
+#p2-gl{z-index:0}#p2-ui{z-index:2}#p2-tx{z-index:3}
+html.p2 .p2c{opacity:1}
+html.p2 #gl,html.p2 #tx{opacity:0;transform:scale(7)}
+html.diving #gl{transition:opacity 1.5s ease,transform 1.8s cubic-bezier(.6,0,.9,.4)}html.diving .p2c{transition:opacity 1.4s ease .5s}
+.edge{--ink:#efe8d8;--pdim:rgba(239,232,216,.55);--faint:rgba(239,232,216,.32);position:fixed;z-index:5;pointer-events:none;color:var(--pdim);font-family:var(--f-body);font-weight:300;font-size:10px;letter-spacing:.06em;opacity:0;transition:opacity .6s,color .4s}
+html.p2 .edge{opacity:1}
+#p2-inset{position:fixed;z-index:4;right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:150px;width:132px;height:132px;opacity:0;transition:opacity .8s;pointer-events:none}
+#p2-insetL{position:fixed;z-index:4;right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:132px;width:132px;text-align:center;color:rgba(239,232,216,.55);opacity:0;transition:opacity .8s;font-family:var(--f-body);font-size:9px;letter-spacing:.12em}
+html:not(.p2) #p2-inset,html:not(.p2) #p2-insetL{display:none}
+.tr{top:calc(66px + env(safe-area-inset-top,0px));right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));text-align:right;display:grid;gap:3px;font-variant-numeric:tabular-nums}
+.tr .clk{color:var(--ink);font-size:11px}
+.bl{left:calc(max(24px,7vw) + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));display:grid;gap:6px;font-variant-numeric:tabular-nums}
+.bl .spec{color:var(--ink);text-transform:uppercase;letter-spacing:.16em}
+.sb{display:flex;align-items:center;gap:10px;color:var(--ink);font-size:11px;white-space:nowrap}
+.sb .bar{height:3px;background:var(--ink);width:60px}
+.br{right:calc(max(24px,7vw) + env(safe-area-inset-right,0px));bottom:calc(68px + env(safe-area-inset-bottom,0px));text-align:right;display:grid;gap:2px;font-size:8.5px;max-width:min(46vw,30rem);line-height:1.45;color:var(--faint)}
+html.p2 .foot{opacity:0;pointer-events:none}
+body.inv .edge,body.inv #p2-insetL{color:rgba(0,0,0,.7)}body.inv .sb,body.inv .tr .clk,body.inv .bl .spec{color:#000}body.inv .sb .bar{background:#000}
+body.inv .top,body.inv .phrase,body.inv .explore,body.inv .snd,body.inv .toc button[aria-current="true"]{color:#000}body.inv .toc button{color:rgba(0,0,0,.45)}
+body.inv .explore{border-bottom-color:rgba(0,0,0,.6)}body.inv .explore::after{border-left-color:#000}body.inv .phrase::before{background:rgba(0,0,0,.35)}
+@media (max-width:640px){.br{max-width:60vw}#p2-inset,#p2-insetL{display:none!important}.bl{left:calc(24px + env(safe-area-inset-left,0px))}}
+</style>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<video class="vid" id="v1" muted loop playsinline preload="auto" aria-hidden="true"><source src="media/261018_mountain.webm" type="video/webm"><source src="media/261018_mountain.mp4" type="video/mp4"></video>
+<video class="vid" id="v2" muted loop playsinline preload="auto" aria-hidden="true"><source src="media/261018_ice.webm" type="video/webm"><source src="media/261018_ice.mp4" type="video/mp4"></video>
+<canvas id="tx" aria-hidden="true"></canvas>
+<div id="flash" aria-hidden="true"></div>
+<div id="shade" aria-hidden="true"></div>
+<div id="after" aria-hidden="true"></div>
+
+<canvas id="p2-gl" class="p2c" aria-hidden="true"></canvas>
+<canvas id="p2-ui" class="p2c" aria-hidden="true"></canvas>
+<canvas id="p2-tx" class="p2c" aria-hidden="true"></canvas>
+<canvas id="p2-inset" aria-hidden="true"></canvas>
+<div id="p2-insetL" aria-hidden="true"></div>
+<div class="edge tr"><span class="clk" id="p2-clk">t = 0</span><span id="p2-rate">Δt</span></div>
+<div class="edge bl"><span class="spec" id="p2-spec">—</span><div class="sb"><span class="bar" id="p2-bar"></span><span id="p2-sbl">—</span></div><span id="p2-mag">×</span></div>
+<div class="edge br" id="p2-cred"></div>
+
+<div id="intro">
+  <button class="hold" id="hold" aria-label="Press and hold to enter (with sound)">
+    <span class="breath"></span>
+    <svg viewBox="0 0 132 132" fill="none" stroke-width="1"><circle class="track" cx="66" cy="66" r="62"/><circle class="fill" id="holdFill" cx="66" cy="66" r="62" stroke-dasharray="389.6" stroke-dashoffset="389.6"/></svg>
+  </button>
+  <svg class="snd-hint" viewBox="0 0 24 24" fill="none" stroke="#efe8d8" stroke-width="1.2" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9.5a3.6 3.6 0 0 1 0 5"/><path d="M18 7a7.2 7.2 0 0 1 0 10"/></svg>
+</div>
+
+<div class="top">AETHER</div>
+<nav aria-label="Eras"><ul class="toc" id="toc">
+  <li><button type="button" data-p="0"><i>Origin</i>Live</button></li>
+  <li><button type="button" data-p="1.06"><i>— 1872</i>Eat</button></li>
+  <li><button type="button" data-p="2.06"><i>1872</i>Hold</button></li>
+  <li><button type="button" data-p="3.2"><i>1995</i>Know</button></li>
+  <li><button type="button" data-s="4.95"><i>2022</i>Generative AI</button></li>
+  <li><button type="button" data-s="6"><i>2022 —</i>Feel</button></li>
+</ul></nav>
+<div class="phrase" id="phrase" aria-live="polite"></div>
+<a class="explore" href="#contact" id="explore">Contact</a>
+<div class="foot"><span class="cred">Footage: Capricorn4049, “Büelenhorn (Monstein), aerial video” CC BY-SA 4.0 / Blagoj Klincharski, “The Gullet, Antarctica” CC BY 3.0 — Wikimedia Commons</span><a href="https://embeddedblue.com" target="_blank" rel="noopener">Embedded Blue Inc.</a><span>Cultural Placemaking</span><span>© 2026</span></div>
+<button class="snd" id="snd" aria-pressed="false" aria-label="Sound on"><span></span><span></span><span></span><span></span></button>
+<div class="cur" id="cur" aria-hidden="true"><div class="ring"></div><div class="dot"></div></div>
+
+<main id="main">
+  <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">AETHER — Cultural Placemaking</h1>
+  <div id="p2zone" style="pointer-events:none" aria-hidden="true"></div><!-- 0–3 生命→食べる→持つ→知る：顕微鏡。高さはJSで（画面高×1.5×4.15） -->
+  <div class="mk" style="height:200vh" aria-hidden="true"></div><!-- 4 言葉の洪水（インターネット・SNS） -->
+  <div class="mk" style="height:150vh" aria-hidden="true"></div><!-- 5 生成AI：言葉がLLMの一点に収束する -->
+  <div class="mk" style="height:260vh" aria-hidden="true"></div><!-- 6 これから「感じる」：実写の自然 -->
+  <section class="mk contact" id="contact" aria-label="Contact"><!-- 7 -->
+    <form id="form" novalidate>
+      <p class="ft">Contact</p>
+      <div class="f"><label for="nm">Name</label><input id="nm" name="name" autocomplete="name"></div>
+      <div class="f"><label for="em">Email</label><input id="em" name="email" type="email" autocomplete="email"></div>
+      <div class="f"><label for="ms">Message</label><textarea id="ms" name="message"></textarea></div>
+      <button class="send" type="submit">Send</button>
+      <p class="note" id="sent" hidden>Prototype. This form is not connected yet.</p>
+    </form>
+  </section>
+</main>
+
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
+
+const root=document.documentElement;
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FINE=matchMedia('(pointer:fine)').matches;
+const SMALL=Math.min(innerWidth,innerHeight)<700;
+const N=SMALL?52000:120000;
+root.classList.add('locked');if(FINE)root.classList.add('cur-on');
+const sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
+const bump=(s,c,w)=>Math.max(0,1-Math.abs(s-c)/w);
+
+/* ───────── 音：時代ごとの体の音 ─────────
+   生命＝呼吸／食べる＝ぜん動の鼓動／持つ＝機械の拍／知る＝神経の発火／洪水＝ざわめきの飽和／収束＝吸い込まれて無音／感じる＝風と水と鳥 */
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const CHORDS=[[38,45,52,57],[36,43,48,55],[40,47,52,59],[45,52,57,64],[45,46,52,53],[45,52,57,64],[43,50,55,62],[43,50,55,59]];
+const PADF=[700,520,900,1800,2600,600,2600,1800];
+const A={ctx:null,on:false,lastSt:-1,next:0,beatAt:0,birdAt:0,stepSign:0,whooshed:false,
+  init(){
+    if(this.ctx)return;const c=this.ctx=new (window.AudioContext||window.webkitAudioContext)();
+    this.out=c.createGain();this.out.gain.value=0;
+    const comp=c.createDynamicsCompressor();comp.threshold.value=-20;comp.ratio.value=3;this.out.connect(comp).connect(c.destination);
+    this.rev=c.createConvolver();this.rev.buffer=this.ir(6.5);this.revG=c.createGain();this.revG.gain.value=.4;this.rev.connect(this.revG).connect(this.out);
+    this.padF=c.createBiquadFilter();this.padF.type='lowpass';this.padF.frequency.value=600;this.padF.Q.value=.7;
+    this.padG=c.createGain();this.padG.gain.value=0;this.padF.connect(this.padG);this.padG.connect(this.out);this.padG.connect(this.rev);
+    this.vo=[];for(let v=0;v<5;v++)[-8,0,8].forEach(det=>{const o=c.createOscillator();o.type='sawtooth';o.frequency.value=mtof(CHORDS[0][v%4]);o.detune.value=det+Math.random()*4-2;const g=c.createGain();g.gain.value=.034;const p=c.createStereoPanner();p.pan.value=det/12;o.connect(g).connect(p).connect(this.padF);o.start();this.vo.push({o,v,p,det})});
+    const len=c.sampleRate*4,b=c.createBuffer(1,len,c.sampleRate),d=b.getChannelData(0);let l=0;for(let i=0;i<len;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.4}this.brown=b;
+    const wb=c.createBuffer(1,len,c.sampleRate),wd=wb.getChannelData(0);for(let i=0;i<len;i++)wd[i]=Math.random()*2-1;this.white=wb;
+    const loop=(buf,type,f,q)=>{const s=c.createBufferSource();s.buffer=buf;s.loop=true;const fl=c.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=c.createGain();g.gain.value=0;s.connect(fl).connect(g);g.connect(this.out);g.connect(this.rev);s.start();return{fl,g}};
+    this.wind=loop(b,'bandpass',420,.6);this.water=loop(wb,'lowpass',800,.5);this.hiss=loop(wb,'bandpass',3200,.9);
+    const lfo=c.createOscillator();lfo.frequency.value=.11;const lg=c.createGain();lg.gain.value=260;lfo.connect(lg).connect(this.wind.fl.frequency);lfo.start();
+    this.beat=[110,111.6].map((f,i)=>{const o=c.createOscillator(),g=c.createGain(),p=c.createStereoPanner();o.frequency.value=f;g.gain.value=0;p.pan.value=i?1:-1;o.connect(g).connect(p).connect(this.out);o.start();return g});
+    this.sw=c.createOscillator();this.sw.type='sine';this.sw.frequency.value=110;this.swG=c.createGain();this.swG.gain.value=0;this.sw.connect(this.swG);this.swG.connect(this.out);this.swG.connect(this.rev);this.sw.start();
+  },
+  ir(sec){const c=this.ctx,len=c.sampleRate*sec,b=c.createBuffer(2,len,c.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.4)}return b},
+  set(on){if(!this.ctx)this.init();this.on=on;if(this.ctx.state==='suspended')this.ctx.resume();this.out.gain.setTargetAtTime(on?.85:0,this.ctx.currentTime,.6)},
+  hold(h){if(!this.ctx)return;const t=this.ctx.currentTime;this.sw.frequency.setTargetAtTime(73.4*(1+h*1.5),t,.08);this.swG.gain.setTargetAtTime(h*.16,t,.08);this.wind.g.gain.setTargetAtTime(.04+h*.2,t,.1)},
+  boom(v=.55){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(30,t+3);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+4);o.connect(g).connect(this.out);o.start(t);o.stop(t+4.2)},
+  enter(){if(!this.ctx)return;this.swG.gain.setTargetAtTime(0,this.ctx.currentTime,.5);this.boom();this.padG.gain.setTargetAtTime(.45,this.ctx.currentTime+.3,1.2)},
+  hit(f,v,dur,ratio=1.41){const c=this.ctx,t=c.currentTime,car=c.createOscillator(),mod=c.createOscillator(),mg=c.createGain(),g=c.createGain();car.frequency.value=f;mod.frequency.value=f*ratio;mg.gain.setValueAtTime(f*3,t);mg.gain.exponentialRampToValueAtTime(1,t+dur);mod.connect(mg).connect(car.frequency);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);car.connect(g);g.connect(this.out);g.connect(this.rev);car.start(t);mod.start(t);car.stop(t+dur+.05);mod.stop(t+dur+.05)},
+  thump(v){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(38,t+.25);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+.5);o.connect(g).connect(this.out);o.start(t);o.stop(t+.55)},
+  click(v=.08){const c=this.ctx,t=c.currentTime,n=c.createBufferSource();n.buffer=this.white;const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=2500;const g=c.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.012);n.connect(f).connect(g).connect(this.out);n.start(t,Math.random()*3);n.stop(t+.02)},
+  snap(y){const c=this.ctx,t=c.currentTime;if(t-(this.lastSnap||0)<.03)return;this.lastSnap=t;const o=c.createOscillator(),g=c.createGain();o.frequency.value=220*Math.pow(2,Math.round((1-y)*24)/12);g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g).connect(this.out);o.start(t);o.stop(t+.06)},
+  pip(f,v,pan){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain(),p=c.createStereoPanner();o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.06);p.pan.value=pan;o.connect(g).connect(p).connect(this.out);o.start(t);o.stop(t+.07)},
+  whoosh(){const c=this.ctx,t=c.currentTime,s=c.createBufferSource();s.buffer=this.white;const f=c.createBiquadFilter();f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(9000,t);f.frequency.exponentialRampToValueAtTime(60,t+1.6);const g=c.createGain();g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.0001,t+1.8);s.connect(f).connect(g).connect(this.out);s.start(t);s.stop(t+1.9);
+    const o=c.createOscillator(),og=c.createGain();o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(40,t+1.5);og.gain.setValueAtTime(.12,t);og.gain.exponentialRampToValueAtTime(.0001,t+1.6);o.connect(og).connect(this.out);o.start(t);o.stop(t+1.7)},
+  release(){const c=this.ctx;this.boom(.35);[67,71,74,79,83].forEach((m,i)=>setTimeout(()=>this.hit(mtof(m),.05,4,3.51),i*120))},
+  bird(){const c=this.ctx,t0=c.currentTime,n=2+(Math.random()*4|0),base=2600+Math.random()*1400,pan=Math.random()*1.6-.8;
+    for(let i=0;i<n;i++){const t=t0+i*(.07+Math.random()*.05),o=c.createOscillator(),g=c.createGain(),p=c.createStereoPanner();o.frequency.setValueAtTime(base,t);o.frequency.exponentialRampToValueAtTime(base*(1.25+Math.random()*.3),t+.05);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.025,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.07);p.pan.value=pan;o.connect(g).connect(p);p.connect(this.out);p.connect(this.rev);o.start(t);o.stop(t+.09)}},
+  // 顕微鏡の区間：その時代の和音だけを薄く敷く（音の主役は実録音の心音と、レンズの機械音）
+  ambient(st){if(!this.on)return;const c=this.ctx,t=c.currentTime;if(st!==this.lastSt){this.lastSt=st;const ch=CHORDS[st];this.vo.forEach(({o,v})=>o.frequency.setTargetAtTime(mtof(ch[v%ch.length]),t,1.1))}
+    this.vo.forEach(({p,det})=>p.pan.setTargetAtTime(det/12,t,.3));this.padG.gain.setTargetAtTime(.13,t,.6);this.padF.frequency.setTargetAtTime(PADF[st]*.8,t,.6);this.revG.gain.setTargetAtTime(.3,t,1);
+    this.water.g.gain.setTargetAtTime(0,t,.3);this.hiss.g.gain.setTargetAtTime(0,t,.3);this.wind.g.gain.setTargetAtTime(.025,t,.6);this.beat.forEach(g=>g.gain.setTargetAtTime(0,t,.5))},
+  update(s,vel,ptrSpeed,workPh){if(!this.on)return;const c=this.ctx,t=c.currentTime,st=Math.min(7,Math.round(s));
+    if(st!==this.lastSt){this.lastSt=st;const ch=CHORDS[st];this.vo.forEach(({o,v})=>o.frequency.setTargetAtTime(mtof(ch[v%ch.length]),t,1.1))}
+    const zone=sm((s-2.9)/.3)*(1-sm((s-5.4)/.1)),wide=sm((s-5.5)/.3);
+    this.vo.forEach(({p,det,v})=>p.pan.setTargetAtTime((1-zone)*(det/12+(wide?((v%2)?.6:-.6)*wide:0)),t,.3));
+    const flood=sm((s-3.55)/.7)*(1-sm((s-4.6)/.3)),silence=sm((s-4.6)/.35)*(1-sm((s-5.45)/.25)),nature=sm((s-5.4)/.4);
+    // 生命：呼吸に合わせて和音がふくらむ
+    const breath=bump(s,0,.8)*(.5+.5*Math.sin(t*1.25));
+    this.padG.gain.setTargetAtTime((.32+breath*.25+flood*.15)*(1-silence)*(1-nature*.45),t,.25);
+    this.padF.frequency.setTargetAtTime(PADF[st]*(s<5.4?1+.25*Math.sin(t*1.2566):1),t,s<5.4?.2:1.2);
+    this.revG.gain.setTargetAtTime(.25+nature*.6,t,1);
+    this.wind.g.gain.setTargetAtTime(((.04+Math.min(.3,vel*.01+ptrSpeed*.004))*(1-flood)*(1-silence))+nature*(.22+Math.min(.25,ptrSpeed*.004)),t,.4);
+    this.wind.fl.frequency.setTargetAtTime(380+Math.min(2000,ptrSpeed*12),t,.4);
+    this.water.g.gain.setTargetAtTime(nature*.06,t,.8);this.beat.forEach(g=>g.gain.setTargetAtTime(nature*.035,t,1));
+    this.hiss.g.gain.setTargetAtTime(flood*.09,t,.3);
+    // 食べる：ぜん動の鼓動
+    const gutW=bump(s,1,.6);if(gutW>.05&&t>this.beatAt){this.thump(.35*gutW);this.beatAt=t+1.6}
+    // 持つ：全員が同じ瞬間に同じ動作をする、その拍
+    const workW=bump(s,2,.6);const sg=Math.sign(Math.sin(workPh));if(sg!==this.stepSign){this.stepSign=sg;if(workW>.05)this.hit(180,.12*workW,.35,2.76)}
+    // 知る：神経の発火
+    const netW=bump(s,3,.7);if(netW>.05&&Math.random()<netW*.25)this.pip(1400+Math.random()*2600,.03*netW,Math.random()*2-1);
+    // 洪水：打鍵が飽和していく
+    if(flood>.05&&t>this.next){this.pip(2400+Math.random()*1800,.02+flood*.02,Math.random()*2-1);this.next=t+.12/(1+flood*8)}
+    if(!this.whooshed&&s>4.62){this.whooshed=true;this.whoosh()}if(s<4.3)this.whooshed=false;
+    if(!this.released&&s>5.45){this.released=true;this.release()}if(s<5.2)this.released=false;
+    if(nature>.5&&t>this.birdAt){this.bird();this.birdAt=t+2+Math.random()*5}
+  }};
+
+/* ───────── 意味のない文章 ───────── */
+// 意味のない英文：実在の語を、文法なしに並べる
+const WORDS='the of and to in is that for it as with on be at by this from or have an they which you were her all she there would their we him been has when who will more no if out so said what up its about into than them can only other new some could time these two may then do first any my now such like our over man me even most made after also did many before must through back years where much your way well down should because each just those people how too little state good very make world still own see men work long here get both between life being under never day same another know while last might us great old year off come since against go came right used take three'.split(' ');
+function sentence(){let n=6+(Math.random()*16|0),out=[];for(let i=0;i<n;i++){let w=WORDS[(Math.random()*WORDS.length)|0];if(i===0)w=w[0].toUpperCase()+w.slice(1);out.push(w)}return out.join(' ')+(Math.random()<.85?'.':'?')}
+const tx=document.getElementById('tx'),tg=tx.getContext('2d');let layers=[];
+function buildText(){
+  const dpr=Math.min(devicePixelRatio||1,2),W=innerWidth,H=innerHeight;tx.width=W*dpr;tx.height=H*dpr;tg.setTransform(dpr,0,0,dpr,0,0);
+  const spec=[[11,.26,22],[14,.36,40],[19,.5,64],[27,.62,96]];
+  layers=spec.map(([fs,a,sp],i)=>{const c=document.createElement('canvas');c.width=Math.ceil(W*dpr);c.height=Math.ceil(H*1.5*dpr);const g=c.getContext('2d');g.scale(dpr,dpr);
+    g.font=`${i>2?'300':'200'} ${fs}px "Geist Mono",ui-monospace,monospace`;g.fillStyle=`rgba(239,232,216,${a})`;g.textBaseline='top';
+    let y=Math.random()*fs;const lh=fs*1.7;while(y<H*1.5){let x=-Math.random()*200;while(x<W){const s=sentence();if(Math.random()<.72)g.fillText(s,x,y);x+=g.measureText(s).width+fs*(1.5+Math.random()*4)}y+=lh*(1.4+Math.random()*2.2)}
+    return{c,sp,h:H*1.5,off:Math.random()*H}});
+}
+// 言葉の洪水は、生成AI（LLM）の中へ吸い込まれていく。単語がひとつずつ渦を巻いてモデルへ入る
+const toks=[];let tokAt=0;
+function drawText(s,time,dt){
+  const W=innerWidth,H=innerHeight;tg.clearRect(0,0,W,H);
+  const flood=sm((s-3.55)/.8),ab=sm((s-4.45)/.6),gone=sm((s-5.25)/.25);
+  if(flood>0&&ab<1){
+    tg.save();const k=1-ab*.35;tg.translate(W/2,H/2);tg.scale(k,k);tg.translate(-W/2,-H/2);
+    layers.forEach((L,i)=>{const vis=sm(flood*layers.length-i);if(vis<=0)return;tg.globalAlpha=vis*(1-ab);
+      const y=-((time*L.sp+s*500*(1+i*.3)+L.off)%L.h);tg.drawImage(L.c,0,y,W,L.h);tg.drawImage(L.c,0,y+L.h,W,L.h)});
+    tg.restore();
+  }
+  // 1ビットのバーコード：音と同じ信号を、白と黒だけで刻む
+  const bc=sm((s-3.75)/.2)*(1-sm((s-4.75)/.2));
+  if(bc>0){if(!drawText.bt||time-drawText.bt>.16){drawText.bt=time;drawText.bars=[];let x=0;while(x<W){const w=1+Math.random()*9;if(Math.random()<.5)drawText.bars.push([x,w]);x+=w};drawText.by=H*(.15+Math.random()*.7);drawText.bh=20+Math.random()*90;if(A.on)A.pip(1000+Math.random()*3000,.025,0)}
+    tg.globalAlpha=bc*.85;tg.fillStyle='#fff';for(const [x,w] of drawText.bars)tg.fillRect(x,drawText.by,w,drawText.bh);tg.globalAlpha=1}
+  // 単語の流入
+  const rate=ab>0&&gone<1?(1-gone)*Math.sin(Math.min(1,ab*1.4)*Math.PI*.5+.2)*90:0;
+  tokAt+=rate*dt;while(tokAt>1){tokAt-=1;const a=Math.random()*6.283,r=Math.hypot(W,H)*.55*(.6+Math.random()*.5);toks.push({w:WORDS[(Math.random()*WORDS.length)|0],a,r,r0:r,sp:.55+Math.random()*.6,fs:11+Math.random()*16,spin:(Math.random()<.5?-1:1)*(1.2+Math.random())})}
+  tg.textAlign='center';tg.textBaseline='middle';
+  for(let i=toks.length-1;i>=0;i--){const t=toks[i];t.r-=t.r0*t.sp*dt*.9*(1+(1-t.r/t.r0)*2.5);t.a+=t.spin*dt*(1.2-t.r/t.r0);
+    if(t.r<6){toks.splice(i,1);continue}const q=t.r/t.r0,x=W/2+Math.cos(t.a)*t.r,y=H/2+Math.sin(t.a)*t.r*.82;
+    tg.globalAlpha=Math.min(1,(1-q)*3)*Math.min(1,q*4);tg.font=`300 ${t.fs*(.35+q*.65)}px "Geist Mono",monospace`;tg.fillStyle='#efe8d8';tg.fillText(t.w,x,y)}
+  tg.globalAlpha=1;
+}
+/* ───────── シェーダ ───────── */
+const NOISE=`
+vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}
+vec4 mod289(vec4 x){return x-floor(x*(1./289.))*289.;}
+vec4 permute(vec4 x){return mod289(((x*34.)+1.)*x);}
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-.85373472095314*r;}
+float snoise(vec3 v){
+  const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);
+  vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);
+  vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);
+  vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;
+  i=mod289(i);
+  vec4 p=permute(permute(permute(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));
+  float n_=.142857142857;vec3 ns=n_*D.wyz-D.xzx;
+  vec4 j=p-49.*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);
+  vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.-abs(x)-abs(y);
+  vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);
+  vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;vec4 sh=-step(h,vec4(0.));
+  vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+  vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);
+  vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+  p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;
+  vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);m=m*m;
+  return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
+}`;
+const VS=`
+uniform float uTime,uS,uPR,uSize,uIntro,uHold,uPress,uScale,uVel,uWX,uTwitch;
+uniform vec3 uPointer;
+attribute vec4 aRand;attribute vec3 aCell;attribute vec4 aSeg;attribute vec4 aNet;
+varying float vA;varying vec3 vCol;
+${NOISE}
+vec3 rotY(vec3 p,float a){float c=cos(a),s=sin(a);return vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);}
+vec3 dA(float a){return vec3(0.,-cos(a),sin(a));}
+vec3 limb(vec3 a,vec3 b,float r){return mix(a,b,aSeg.y)+vec3(aSeg.z*r,0.,aSeg.w*r);}
+// 筋肉：紡錘形の筋繊維の束。機械の拍で収縮し、押し込むと全力で縮む
+float gC=0.;
+vec3 musclePos(){
+  float c=clamp(.32*(.5-.5*cos(uTime*2.6))+uPress*.65+uTwitch*.3,0.,1.);gC=c;
+  float u=aSeg.y;float fas=floor(aRand.z*13.),fa=fas*2.39996,fr=.9*sqrt((fas+.5)/13.);
+  vec2 fc=vec2(cos(fa),sin(fa))*fr;float la=fract(aRand.z*13.)*6.2832,lr=.26*sqrt(fract(aRand.z*131.7));
+  vec2 lc=vec2(cos(la),sin(la))*lr;
+  float belly=pow(sin(clamp((u-.12)/.76,0.,1.)*3.14159),.75);
+  float tend=1.-smoothstep(.0,.12,u)*(1.-smoothstep(.88,1.,u));
+  float r=mix(.05,1.25,belly)*(1.+.55*c*belly);
+  float L=5.6*(1.-.26*c);
+  float tw=u*.9;vec2 yz=(fc+lc)*r;yz=vec2(cos(tw)*yz.x-sin(tw)*yz.y,sin(tw)*yz.x+cos(tw)*yz.y)*vec2(1.,.72);
+  yz+=vec2(aSeg.z,aSeg.w)*.02;
+  vec3 p=vec3((u-.5)*L,yz.x+belly*c*.18,yz.y);
+  float a=-.32,ca=cos(a),sa=sin(a);p=vec3(ca*p.x-sa*p.y,sa*p.x+ca*p.y,p.z);
+  return rotY(p,.4+sin(uTime*.15)*.3);
+}
+// 内臓：ぜん動しながら食べ物を送る管
+vec3 gutC(float u){float a=u*6.2832;return vec3(sin(a*3.)*1.25+sin(a*8.)*.26,(u-.5)*3.3+sin(a*6.)*.2,cos(a*3.)*.85+cos(a*7.)*.2);}
+vec3 gutPos(){
+  float u=fract(aRand.x+uTime*.01);vec3 C=gutC(u);vec3 T=normalize(gutC(u+.002)-C);
+  vec3 Nn=normalize(cross(T,vec3(.3,.2,1.)));vec3 B=cross(T,Nn);
+  float r=.17*(1.+.5*sin(u*80.-uTime*3.2))*(.82+.18*aRand.z);float th=aRand.y*6.2832;
+  return rotY(C+(Nn*cos(th)+B*sin(th))*r,uTime*.12);
+}
+// 生命：輪郭が揺らぎ、仮足を伸ばし、中で小器官が漂う細胞
+vec3 cellPos(){
+  vec3 dir=normalize(aCell+1e-4);float L=length(aCell),t=uTime;
+  float def=1.+.2*snoise(dir*1.25+vec3(0.,0.,t*.13))+.07*snoise(dir*3.1-vec3(t*.21));
+  vec3 ax=normalize(vec3(sin(t*.17),cos(t*.11)*.5,cos(t*.17)));def+=pow(max(dot(dir,ax),0.),7.)*.7;
+  def*=1.+.04*sin(t*1.25);def*=1.-.18*uPress;
+  vec3 p;
+  if(L>1.53)p=dir*1.6*def;
+  else if(L>.43){float o=floor(aRand.y*8.);
+    if(aRand.w<.55){vec3 c=vec3(snoise(vec3(o*3.1,t*.05,1.)),snoise(vec3(o*1.7,t*.05,7.)),snoise(vec3(o*2.3,t*.05,13.)))*.85;p=c+dir*(.1+.1*fract(o*.37))*pow(aRand.z,.33);}
+    else p=dir*L*.95*def;}
+  else{vec3 nc=vec3(.28,.12,.05)+vec3(sin(t*.2),cos(t*.17),0.)*.06;p=nc+dir*L*1.05*(1.+.12*snoise(dir*2.2+t*.1));}
+  return rotY(p,t*.06);
+}
+// 生成AI：言葉を飲み込む巨大なモデル。層が積み重なり、信号が下から上へ伝わる
+float gL=0.;
+vec3 llmPos(){
+  float ly=floor(aSeg.y*14.);gL=ly/13.;float gx,gz;
+  if(aRand.w<.7){gx=floor(aRand.z*18.)/17.;gz=floor(fract(aRand.z*18.*17.31)*18.)/17.;}
+  else{gx=fract(aRand.z*7.13);gz=fract(aRand.y*5.71);}
+  vec3 p=vec3((gx-.5)*2.6,(gL-.5)*2.9,(gz-.5)*2.6)+vec3(aSeg.z,0.,aSeg.w)*.012;
+  float a=.42,c=cos(a),s_=sin(a);p=vec3(p.x,c*p.y-s_*p.z,s_*p.y+c*p.z);
+  return rotY(p,uTime*.12+.6);
+}
+vec3 stagePos(int st){
+  if(st==0)return cellPos();
+  if(st==1)return gutPos();
+  if(st==2)return musclePos();
+  if(st==3||st==4)return rotY(aNet.xyz,uTime*.07);
+  if(st==5)return llmPos();
+  return normalize(aCell+1e-4)*(7.+aRand.z*14.);
+}
+float amp(int st){if(st==0)return .06;if(st==1)return .015;if(st==2)return .006;if(st==3)return .015;if(st==4)return .3;if(st==5)return 0.;return .6;}
+float sz(int st){if(st==5)return .6;return .85;}
+float br(int st){if(st==0)return .55;if(st==1)return .5;if(st==2)return .8;if(st==3)return 0.;if(st==4)return 0.;if(st==5)return .55;return 0.;}
+float nt(int st){return (st==3||st==4)?1.:0.;}
+float mu(int st){return st==2?1.:0.;}
+float lm(int st){return st==5?1.:0.;}
+void main(){
+  int a=int(floor(uS));int b=a+1;float f=uS-float(a);if(a>=7){a=7;b=7;f=0.;}
+  float k=smoothstep(0.,1.,clamp((f-.3)*2.6-aRand.x*.8,0.,1.));
+  if(a==4)k=smoothstep(0.,1.,clamp((f-.35)*3.-aRand.x*.6,0.,1.));
+  vec3 p=mix(stagePos(a),stagePos(b),k);
+  float am=mix(amp(a),amp(b),k)+sin(k*3.14159)*.75+uVel*.2;
+  float t=uTime*.07;vec3 q=p*.34+aRand.xyz*.35*(1.-min(am,1.));
+  p+=vec3(snoise(q+vec3(t,0.,0.)),snoise(q+vec3(0.,t+17.,0.)),snoise(q+vec3(31.,0.,t)))*am*.85;
+  vec3 seed=normalize(aCell+1e-4)*(.42+.06*sin(uTime*1.7+aRand.y*6.28))*(1.+uHold*1.6)*pow(aRand.z,1.8);
+  p=mix(seed,p,uIntro);
+  vec3 d=p-uPointer;float dd=dot(d,d);float s2=uScale*uScale;
+  p+=normalize(d+1e-4)*exp(-dd/(.55*s2))*(.28+uPress*1.1)*uScale*uIntro;
+  vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
+  // 全段を貫く、ひとつの呼吸（0.2Hz）
+  float ps=uSize*mix(sz(a),sz(b),k)*(.45+aRand.w*1.2)*uPR/(-mv.z)*(1.+.12*sin(uTime*1.2566));
+  float nw=mix(nt(a),nt(b),k);
+  vA=(.45+.55*aRand.y)*clamp(ps/1.4,.12,1.)*mix(br(a),br(b),k)*mix(.03+uHold*.03,1.,uIntro);
+  // 神経：信号が網を走る
+  if(aNet.w>=0.){float tt=fract(aNet.w),sd=fract(floor(aNet.w)*.6180339);float pulse=smoothstep(.9,1.,fract(tt-uTime*.55+sd));vA*=1.+pulse*5.*nw;}
+  else vA*=1.+nw*.8;
+  // 触れたところの神経が発火する
+  vA*=1.+nw*4.*exp(-dd*1.2);
+  // LLM：層を上っていく信号
+  float lw=mix(lm(a),lm(b),k);vA*=mix(1.,1.+3.*smoothstep(.82,1.,fract(gL-uTime*.45)),lw);
+  // 筋の横紋（サルコメア）
+  float mw=mix(mu(a),mu(b),k);float band=.5+.5*sin(aSeg.y*120.);vA*=mix(1.,.25+.75*smoothstep(.15,.85,band)+gC*.6,mw)*mix(1.,.3+.7*sin(aSeg.y*3.14159),mw);
+  gl_PointSize=max(ps,1.4*uPR*.75);
+  vCol=mix(vec3(1.,.93,.84),vec3(.86,.9,1.),nw);
+  vCol=mix(vec3(1.,.95,.88),vCol,uIntro);
+}`;
+const FS=`uniform float uOp;varying float vA;varying vec3 vCol;
+void main(){vec2 c=gl_PointCoord-.5;float d=length(c);float a=smoothstep(.5,0.,d);a*=a;gl_FragColor=vec4(vCol,a*vA*uOp);}`;
+
+/* ───────── シーン ───────── */
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas:document.getElementById('gl'),antialias:false,powerPreference:'high-performance'})}
+catch(e){root.classList.remove('locked');throw e}
+const DPR=Math.min(devicePixelRatio||1,SMALL?2:1.75);
+renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight);renderer.setClearColor(0x04060a,1);
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.05,2000);cam.position.set(0,0,11);
+const aspectMul=()=>{const as=innerWidth/innerHeight;return as<1?Math.min(1.8,Math.max(1,.75/as)):1};
+const Z=[6.2,7.2,9.2,8.2,8.2,8.4,8,8];
+
+await Promise.race([Promise.all([document.fonts.load('400 20px "Zen Kaku Gothic New"'),document.fonts.load('500 20px "Shippori Mincho B1"')]),new Promise(r=>setTimeout(r,2500))]);
+buildText();
+
+const geo=new THREE.BufferGeometry();
+const aRand=new Float32Array(N*4),aCell=new Float32Array(N*3),aSeg=new Float32Array(N*4),aNet=new Float32Array(N*4),pos=new Float32Array(N*3);
+const SEGW=[.08,.22,.065,.055,.065,.055,.1,.09,.1,.09],SEGC=[];SEGW.reduce((a,w,i)=>(SEGC[i]=a+w,a+w),0);const SEGT=SEGC[9];
+function gauss(){return (Math.random()+Math.random()+Math.random()-1.5)/1.5}
+// 神経の網：左右の半球に節点、近いもの同士を結ぶ
+const NN=SMALL?420:720,nodes=[];
+while(nodes.length<NN){const x=Math.random()*2-1,y=Math.random()*2-1,z=Math.random()*2-1;if(x*x+y*y+z*z>1)continue;const side=x<0?-1:1;nodes.push([x*2.3+side*.12,y*1.55+(1-Math.abs(x))*.25,z*1.85])}
+const edges=[];nodes.forEach((n,i)=>{const ds=nodes.map((m,j)=>[j,(m[0]-n[0])**2+(m[1]-n[1])**2+(m[2]-n[2])**2]).sort((a,b)=>a[1]-b[1]);for(let k=1;k<=3;k++)edges.push([i,ds[k][0]])});
+for(let i=0;i<N;i++){
+  aRand.set([Math.random(),Math.random(),Math.random(),Math.random()],i*4);
+  let u=Math.random()*2-1,th=Math.random()*Math.PI*2,sq=Math.sqrt(1-u*u);const q=Math.random();
+  const r=q<.6?1.6*(.97+.03*Math.random()):q<.95?1.55*Math.cbrt(Math.random()):.42*Math.cbrt(Math.random());
+  aCell.set([Math.cos(th)*sq*r,u*r,Math.sin(th)*sq*r],i*3);
+  const x=Math.random()*SEGT;let sg=0;while(SEGC[sg]<x)sg++;
+  aSeg.set([sg,Math.random(),gauss(),gauss()],i*4);
+  if(i%4===0){const n=nodes[(Math.random()*NN)|0];aNet.set([n[0]+gauss()*.035,n[1]+gauss()*.035,n[2]+gauss()*.035,-1],i*4)}
+  else{const e=(Math.random()*edges.length)|0,a=nodes[edges[e][0]],b=nodes[edges[e][1]],t=Math.random()*.999;aNet.set([a[0]+(b[0]-a[0])*t+gauss()*.008,a[1]+(b[1]-a[1])*t+gauss()*.008,a[2]+(b[2]-a[2])*t+gauss()*.008,e+t],i*4)}
+}
+for(const [k,v,n] of [['position',pos,3],['aRand',aRand,4],['aCell',aCell,3],['aSeg',aSeg,4],['aNet',aNet,4]])geo.setAttribute(k,new THREE.BufferAttribute(v,n));
+geo.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e4);
+const U={uTime:{value:0},uS:{value:0},uPR:{value:DPR},uSize:{value:SMALL?22:18},uIntro:{value:0},uHold:{value:0},uPress:{value:0},uScale:{value:1},uVel:{value:0},uWX:{value:1.25},uTwitch:{value:0},uPointer:{value:new THREE.Vector3(99,99,0)},uOp:{value:.62}};
+const pts=new THREE.Points(geo,new THREE.ShaderMaterial({uniforms:U,vertexShader:VS,fragmentShader:FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+pts.frustumCulled=false;scene.add(pts);
+const fitWX=()=>{const as=innerWidth/innerHeight;U.uWX.value=as<1?Math.max(.55,1.25*as*1.3):1.25};fitWX();
+
+const composer=new EffectComposer(renderer);composer.setPixelRatio(Math.min(DPR,1.5));composer.setSize(innerWidth,innerHeight);
+composer.addPass(new RenderPass(scene,cam));
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.85,.5,.16);composer.addPass(bloom);
+const FIN=new ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uRes:{value:new THREE.Vector2(innerWidth,innerHeight)},uCA:{value:.002}},
+  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime,uCA;uniform vec2 uRes;varying vec2 vUv;
+  void main(){vec2 c=vUv-.5;float r=dot(c,c);vec2 off=c*r*uCA*4.;vec3 col;col.r=texture2D(tDiffuse,vUv+off).r;col.g=texture2D(tDiffuse,vUv).g;col.b=texture2D(tDiffuse,vUv-off).b;
+  col=max(col,vec3(0.))+vec3(.012,.016,.026);col*=1.-r*1.15;float g=fract(sin(dot(floor(vUv*uRes)+fract(uTime*7.)*97.,vec2(12.9898,78.233)))*43758.5453);col+=(g-.5)*.05;gl_FragColor=vec4(col,1.);}`});
+composer.addPass(FIN);
+
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);FIN.uniforms.uRes.value.set(innerWidth,innerHeight);fitWX();buildText();measure()});
+
+/* ───────── スクロール＝時間 ───────── */
+const mks=[...document.querySelectorAll('.mk')];let tops=[];
+function measure(){tops=mks.map(m=>m.getBoundingClientRect().top+scrollY)}
+addEventListener('p2layout',()=>measure());
+measure();
+// 顕微鏡の区間を抜けたところ＝s 3.9（言葉の洪水の途中から入る）。以降は 5 生成AI → 6 感じる → 7 問い合わせ
+const KS=[3.9,5,6,7];
+function targetS(){const y=scrollY;if(y<tops[0])return KS[0];for(let i=0;i<3;i++)if(y<tops[i+1])return KS[i]+(KS[i+1]-KS[i])*(y-tops[i])/(tops[i+1]-tops[i]);return 7}
+function camZ(s){const a=Math.min(7,Math.floor(s)),b=Math.min(7,a+1),f=sm(s-a);return (Z[a]+(Z[b]-Z[a])*f)*aspectMul()}
+
+/* ───────── 入力 ───────── */
+const ptr={x:innerWidth/2,y:innerHeight/2,nx:0,ny:0,down:0,speed:0,px:0,py:0,in:false};
+const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,0,1),0),hit=new THREE.Vector3();
+const cur=document.getElementById('cur'),ring={x:innerWidth/2,y:innerHeight/2};
+addEventListener('pointermove',e=>{ptr.x=e.clientX;ptr.y=e.clientY;ptr.in=true;ptr.nx=e.clientX/innerWidth*2-1;ptr.ny=-(e.clientY/innerHeight)*2+1},{passive:true});
+addEventListener('pointerdown',e=>{if(e.target.closest('button,a,input,select,textarea,form'))return;ptr.down=1;ptr.in=true;ptr.nx=e.clientX/innerWidth*2-1;ptr.ny=-(e.clientY/innerHeight)*2+1;
+  if(state!=='in'||!A.on)return;const st=Math.round(s);
+  if(st===0||st===1)A.thump(.45);else if(st===2)A.hit(120,.22,.6,2.76);else if(st===3)for(let i=0;i<6;i++)setTimeout(()=>A.pip(1400+Math.random()*2600,.05,ptr.nx),i*40)});
+addEventListener('pointerup',()=>ptr.down=0);addEventListener('pointercancel',()=>ptr.down=0);
+document.addEventListener('pointerleave',()=>{ptr.in=false});
+document.querySelectorAll('button,a,input,select,textarea').forEach(el=>{el.addEventListener('pointerenter',()=>cur.classList.add('big'));el.addEventListener('pointerleave',()=>cur.classList.remove('big'))});
+document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('sent').hidden=false});
+const sndBtn=document.getElementById('snd');
+sndBtn.addEventListener('click',()=>{A.set(!A.on);window.P2&&P2.A.setOn(A.on);sndBtn.setAttribute('aria-pressed',A.on);sndBtn.setAttribute('aria-label',A.on?'Sound off':'Sound on')});
+
+/* ───────── 入口：長押しで入る ───────── */
+let state='intro',hold=0,holding=false,enterAt=0;
+const holdBtn=document.getElementById('hold'),holdFill=document.getElementById('holdFill'),intro=document.getElementById('intro');
+const startHold=()=>{if(state!=='intro')return;holding=true;if(!A.ctx){A.init();A.set(true);window.P2&&P2.A.setOn(true);sndBtn.setAttribute('aria-pressed','true');sndBtn.setAttribute('aria-label','Sound off')}};
+holdBtn.addEventListener('pointerdown',e=>{e.preventDefault();startHold()});
+holdBtn.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('pointerup',()=>holding=false);
+holdBtn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();startHold()}});
+holdBtn.addEventListener('keyup',()=>holding=false);
+const vids=[document.getElementById('v1'),document.getElementById('v2')];
+/* ───────── 解放後の世界：自分を包む湾曲スクリーンに実写の自然。ドラッグで見回せる ───────── */
+const natScene=new THREE.Scene(),cam360=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.05,200);cam360.rotation.order='YXZ';
+const vts=vids.map(v=>{const t=new THREE.VideoTexture(v);t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;return t});
+const ARC=2.5,RAD=10,HGT=RAD*ARC*9/16;
+const UN={t1:{value:vts[0]},t2:{value:vts[1]},uMix:{value:0},uTime:{value:0},uIn:{value:0},uHit:{value:0},uSeed:{value:0}};
+const screen=new THREE.Mesh(new THREE.CylinderGeometry(RAD,RAD,HGT,128,1,true,Math.PI-ARC/2,ARC),new THREE.ShaderMaterial({uniforms:UN,side:THREE.BackSide,
+  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform sampler2D t1,t2;uniform float uMix,uTime,uIn,uHit,uSeed;varying vec2 vUv;
+  float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7))+uSeed*43.1)*43758.5453);}
+  void main(){vec2 uv=vec2(1.-vUv.x,vUv.y);vec2 cell=floor(uv*vec2(16.,9.));float r=h(cell);float on=step(r,.28)*uHit;
+    uv+=on*(vec2(h(cell+3.1),h(cell+7.7))-.5)*vec2(.12,.08);vec3 c=mix(texture2D(t1,uv).rgb,texture2D(t2,uv).rgb,uMix);
+    c=mix(c,vec3(dot(c,vec3(.33)))*1.4,on*step(.5,h(cell+9.3)));
+    float e=smoothstep(0.,.1,uv.x)*smoothstep(1.,.9,uv.x)*smoothstep(0.,.12,uv.y)*smoothstep(1.,.88,uv.y);
+    float g=fract(sin(dot(gl_FragCoord.xy+fract(uTime*7.)*97.,vec2(12.9898,78.233)))*43758.5453);
+    gl_FragColor=vec4(c*e*uIn+(g-.5)*.04,1.);}`}));
+natScene.add(screen);
+// 実写を、粒子の点群として立ち上げる。最初は奥行きを持って漂い、やがて写真の面に落ち着く。ドラッグすると再び奥行きへほどける。触れると咲くように散る
+const GW=SMALL?220:320,GH=Math.round(GW*9/16),NP=GW*GH,uvA=new Float32Array(NP*2),rnA=new Float32Array(NP);
+for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){const k=j*GW+i;uvA[k*2]=(i+.5+(Math.random()-.5)*.6)/GW;uvA[k*2+1]=(j+.5+(Math.random()-.5)*.6)/GH;rnA[k]=Math.random()}
+const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(NP*3),3));cg.setAttribute('aUV',new THREE.BufferAttribute(uvA,2));cg.setAttribute('aR',new THREE.BufferAttribute(rnA,1));
+const UC={t1:{value:vts[0]},t2:{value:vts[1]},uMix:{value:0},uTime:{value:0},uSettle:{value:0},uScatter:{value:0},uAlpha:{value:0},uPR:{value:DPR},uTouch:{value:new THREE.Vector4(0,0,0,-99)}};
+const cloud=new THREE.Points(cg,new THREE.ShaderMaterial({uniforms:UC,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  vertexShader:`uniform sampler2D t1,t2;uniform float uMix,uTime,uSettle,uScatter,uAlpha,uPR;uniform vec4 uTouch;attribute vec2 aUV;attribute float aR;varying vec3 vC;varying float vA;
+  void main(){vec3 c=mix(texture2D(t1,aUV).rgb,texture2D(t2,aUV).rgb,uMix);float l=dot(c,vec3(.3,.59,.11));
+    float th=${(Math.PI-ARC/2).toFixed(5)}+(1.-aUV.x)*${ARC.toFixed(5)};float y=(aUV.y-.5)*${HGT.toFixed(5)};
+    float depth=(1.-uSettle)*(l*7.+aR*2.)+uScatter*(sin(aR*91.+uTime*.7)*.5+.5)*(3.+l*4.);
+    float age=uTime-uTouch.w;vec3 dir=vec3(sin(th),0.,cos(th));float ang=acos(clamp(dot(dir,normalize(uTouch.xyz+1e-4)),-1.,1.));
+    float dy=y-uTouch.y;float tdist=length(vec2(ang*10.,dy));float bloom=age>0.&&age<4.?exp(-pow(tdist-age*3.5,2.)*.6)*exp(-age*.8):0.;
+    depth+=bloom*(2.5+aR*2.);float r=${RAD.toFixed(2)}-.05-depth;
+    vec3 p=vec3(sin(th)*r,y+bloom*(aR-.5)*.8+sin(uTime*.3+aR*20.)*(1.-uSettle)*.2,cos(th)*r);
+    vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=(30.+aR*20.)*uPR/(-mv.z)*(1.+bloom*1.5);
+    vC=c*(1.+bloom*1.6);vA=uAlpha*(.5+.5*aR)+bloom*.6;}`,
+  fragmentShader:`varying vec3 vC;varying float vA;void main(){vec2 q=gl_PointCoord-.5;float a=smoothstep(.5,.0,length(q));gl_FragColor=vec4(vC,a*vA);}`}));
+cloud.frustumCulled=false;natScene.add(cloud);
+const rayN=new THREE.Raycaster();
+function touchNature(cx,cy){rayN.setFromCamera({x:cx/innerWidth*2-1,y:-(cy/innerHeight)*2+1},cam360);const d=rayN.ray.direction;UC.uTouch.value.set(d.x,d.y*RAD/Math.max(.2,Math.hypot(d.x,d.z)),d.z,UC.uTime.value);
+  if(A.on){const sc=[67,69,71,74,76,79,81,83];A.hit(mtof(sc[(Math.random()*sc.length)|0]),.06,3,3.51)}if(!FINE&&navigator.vibrate)try{navigator.vibrate(10)}catch(e){}}
+// 手前を舞う雪と光の粒：奥行きの中を、手の動きに合わせて流れる
+const NS=SMALL?2500:6000,sp=new Float32Array(NS*3),sv=new Float32Array(NS);
+for(let i=0;i<NS;i++){const a=Math.random()*6.283,r=1.2+Math.random()*7.5;sp.set([Math.sin(a)*r,(Math.random()-.5)*8,-Math.cos(a)*r],i*3);sv[i]=Math.random()}
+const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));sg.setAttribute('aR',new THREE.BufferAttribute(sv,1));
+const US={uTime:{value:0},uWind:{value:new THREE.Vector2()},uPR:{value:DPR},uIn:{value:0}};
+const snow=new THREE.Points(sg,new THREE.ShaderMaterial({uniforms:US,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  vertexShader:`uniform float uTime,uPR,uIn;uniform vec2 uWind;attribute float aR;varying float vA;
+  void main(){vec3 p=position;p.y=mod(p.y-uTime*(.18+aR*.35)+4.,8.)-4.;p.x+=sin(uTime*.6+aR*30.)*.15+uWind.x*(1.5+aR*3.);p.z+=uWind.y*(1.+aR*2.);
+    vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;float ps=(14.+aR*26.)*uPR/(-mv.z);gl_PointSize=ps;vA=uIn*(.25+.5*aR)*smoothstep(.4,1.5,-mv.z);}`,
+  fragmentShader:`varying float vA;void main(){vec2 c=gl_PointCoord-.5;float a=smoothstep(.5,0.,length(c));gl_FragColor=vec4(vec3(1.),a*a*vA);}`}));
+snow.frustumCulled=false;natScene.add(snow);
+const look={yaw:0,pitch:0,ty:0,tp:0,vx:0,drag:false,lx:0,ly:0,wind:new THREE.Vector2()};
+addEventListener('resize',()=>{cam360.aspect=innerWidth/innerHeight;cam360.updateProjectionMatrix()});
+addEventListener('pointerdown',e=>{if(s<5.5||e.target.closest('button,a,input,select,textarea,form'))return;look.drag=true;look.lx=e.clientX;look.ly=e.clientY;look.moved=0;root.classList.add('grab')});
+addEventListener('pointermove',e=>{if(!look.drag)return;const dx=e.clientX-look.lx,dy=e.clientY-look.ly;look.lx=e.clientX;look.ly=e.clientY;
+  look.moved=(look.moved||0)+Math.abs(dx)+Math.abs(dy);look.scatter=Math.min(1,(look.scatter||0)+(Math.abs(dx)+Math.abs(dy))*.004);look.ty=Math.max(-.5,Math.min(.5,look.ty+dx*.0028));look.tp=Math.max(-.16,Math.min(.16,look.tp+dy*.0018));look.wind.x+=dx*.004;look.wind.y+=dy*.002});
+addEventListener('pointerup',e=>{if(look.drag&&(look.moved||0)<6)touchNature(e.clientX,e.clientY);look.drag=false;root.classList.remove('grab')});
+function enter(){if(state!=='intro')return;state='in';enterAt=performance.now();root.classList.add('diving');setTimeout(()=>root.classList.remove('diving'),2600);intro.classList.add('gone');setTimeout(()=>intro.hidden=true,1800);root.classList.remove('locked');A.enter();measure();vids.forEach(v=>{v.play().then(()=>v.pause()).catch(()=>{})})}
+const skip=e=>{if(state==='intro'&&!holding){if(e.type==='keydown'&&!['ArrowDown','PageDown',' '].includes(e.key))return;if(e.type==='keydown'&&e.target===holdBtn)return;enter()}};
+addEventListener('wheel',skip,{passive:true});addEventListener('touchmove',skip,{passive:true});addEventListener('keydown',skip);
+
+/* ───────── ループ ───────── */
+const flashEl=document.getElementById('flash'),shade=document.getElementById('shade'),phraseEl=document.getElementById('phrase');
+// 左下：その時代の「使う体」と「満たされたもの」（スライド『わたしたちがTSCをはじめる理由』より）
+const PHRASES=[['Cell','Alive'],['Gut','Never hungry'],['Muscle','Convenient, abundant'],['Nerve','Connected to anyone, anytime'],['Nerve','Connected to anyone, anytime'],['Language','Absorbed into one model'],['Whole body, five senses','Feeling alive'],['Whole body, five senses','Feeling alive']];
+const tocBtns=[...document.querySelectorAll('#toc button')];
+const TOCMAP=[0,1,2,3,3,4,5,5];
+tocBtns.forEach(b=>b.addEventListener('click',()=>{if(state==='intro')enter();
+  if(b.dataset.p!=null){scrollTo({top:+b.dataset.p*(window.P2?P2.SH():innerHeight*1.5),behavior:'smooth'});return}
+  const v=+b.dataset.s;let i=0;while(i<2&&v>=KS[i+1])i++;scrollTo({top:tops[i]+(tops[i+1]-tops[i])*(v-KS[i])/(KS[i+1]-KS[i]),behavior:'smooth'})}));
+let lastPh=-1;
+let wasP2=false,afterOn=false,afterT=-99,holdT=0,nextPulse=0,nextHit=0,s=0,last=performance.now(),lastY=scrollY,vel=0,t0=performance.now(),forceS=null,lastYr='';
+const easeOutExpo=x=>x>=1?1:1-Math.pow(2,-10*x);
+function frame(now){update(now);requestAnimationFrame(frame)}
+function update(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;const time=(now-t0)/1000*(RM?.35:1);
+  if(state==='intro'){hold=Math.max(0,Math.min(1,hold+(holding?dt/1.35:-dt*1.6)));holdFill.style.strokeDashoffset=389.6*(1-hold);A.hold(hold);if(hold>=1)enter()}
+  const ip=state==='in'?easeOutExpo(Math.min(1,(now-enterAt)/(RM?800:2600))):0;
+  U.uIntro.value=ip;U.uHold.value=hold;
+  // 冒頭は顕微鏡（p2）が描く。その区間ではこちらは描画を止め、スケールが文字に溢れきった瞬間に言葉の世界へ切り替わる（フェードしない）
+  const P=window.P2;let inP2=false;
+  if(P&&state==='in'&&forceS===null){if(P.s<P.END)P.update(now);else P.follow(now);inP2=P.s<P.END}
+  if(inP2!==wasP2){if(!inP2){P&&P.sleep();if(A.on){A.click(.22);A.pip(3400,.05,0)}}wasP2=inP2;P&&P.A.audible(inP2)}
+  root.classList.toggle('p2',inP2);if(!inP2)document.body.classList.remove('inv');
+  // 入口：光の点に潜り込む（点が細胞へ開きながら拡大し、その内側の顕微鏡像に切り替わる）
+  const diving=state==='in'&&now-enterAt<1900;
+  const ts=state==='in'?targetS():0;const heavy=s>2.9&&s<5.42;
+  if(inP2)s=diving?0:3.9;else s+=(ts-s)*(1-Math.pow(heavy?.12:.0009,dt));if(forceS!==null)s=forceS;
+  const dy=Math.abs(scrollY-lastY);lastY=scrollY;vel+=(dy/Math.max(dt,.001)*.002-vel)*.08;
+  U.uS.value=s;U.uTime.value=time;U.uVel.value=Math.min(1.5,vel);
+  const z=camZ(s),par=state==='in'?1:0;
+  cam.position.x+=((ptr.nx*.35+Math.sin(time*.07)*.3)*par*(z/10)-cam.position.x)*.04;
+  cam.position.y+=((ptr.ny*.25)*par*(z/10)-cam.position.y)*.04;
+  cam.position.z=z;cam.lookAt(0,0,0);
+  U.uScale.value=Math.max(.6,z/9);
+  if(ptr.in){ray.setFromCamera({x:ptr.nx,y:ptr.ny},cam);if(ray.ray.intersectPlane(plane,hit))U.uPointer.value.lerp(hit,.18)}
+  U.uPress.value+=(ptr.down-U.uPress.value)*.1;
+  // 筋肉：押し続けると、電気刺激のような脈が速まっていく（2Hz→12Hz）
+  if(ptr.down&&Math.round(s)===2){holdT+=dt;if(time>nextPulse){nextPulse=time+1/(2+Math.min(10,holdT*3.5));U.uTwitch.value=1;if(A.on)A.click()}}else holdT=0;
+  U.uTwitch.value*=Math.pow(.002,dt);
+  // 解放の入口：実写が音に合わせて升目ごとに割れ、組み直されてから、完全な映像に落ち着く
+  if(s>5.52&&s<6.15&&time>nextHit){nextHit=time+.22+Math.random()*.45;UN.uHit.value=1;UN.uSeed.value=Math.random()*100;if(A.on)A.click(.12)}
+  UN.uHit.value*=Math.pow(.01,dt);if(s>=6.15)UN.uHit.value=0;
+  const ps=Math.hypot(ptr.x-ptr.px,ptr.y-ptr.py)/Math.max(dt,.001)*.016;ptr.speed+=(ps-ptr.speed)*.1;ptr.px=ptr.x;ptr.py=ptr.y;
+  // 言葉の世界ではカーソルが文字の升目に吸着する。解放後は柔らかい光になる
+  const inText=!inP2&&s>2.9&&s<5.42,free=!inP2&&s>=5.5;cur.classList.toggle('caret',inText);cur.classList.toggle('orb',free);
+  const tx_=inText?Math.round(ptr.x/14)*14:ptr.x,ty_=inText?Math.round(ptr.y/26)*26:ptr.y;
+  if(inText){if((tx_!==ring.x||ty_!==ring.y)&&A.on&&ptr.in)A.snap(ty_/innerHeight);ring.x=tx_;ring.y=ty_}else{ring.x+=(tx_-ring.x)*.16;ring.y+=(ty_-ring.y)*.16}
+  cur.style.transform=`translate(${ring.x}px,${ring.y}px)`;cur.firstElementChild.style.transform=`translate(${ptr.x-ring.x}px,${ptr.y-ring.y}px)`;
+  // 言葉の世界では粒子も升目の上でしか反応しない
+  if(inText){U.uPointer.value.x=Math.round(U.uPointer.value.x*4)/4;U.uPointer.value.y=Math.round(U.uPointer.value.y*4)/4;U.uPointer.value.z=0}
+  // 言葉の洪水 → LLMへの収束
+  if(inP2)tg.clearRect(0,0,innerWidth,innerHeight);else drawText(s,time,dt);
+  // 一点がほどけて、実写の自然へ
+  const rel=bump(s,5.5,.18);flashEl.style.opacity=Math.min(1,rel*1.1);
+  const nat=sm((s-5.45)/.25),v2w=sm((s-6.45)/.45);
+  vids.forEach((v,i)=>{const want=s>5.3&&(i===0?v2w<.99:v2w>.01);if(want&&v.paused)v.play().catch(()=>{});if(!want&&!v.paused)v.pause()});
+  look.scatter=(look.scatter||0)*Math.pow(.3,dt);
+  UC.uMix.value=v2w;UC.uTime.value=time;UC.uSettle.value=sm((s-5.55)/.55);UC.uScatter.value=look.scatter;UC.uAlpha.value=nat*(1-sm((s-5.85)/.5)*.82);
+  // 残像：単色の世界から出た目に、補色の青が一瞬残る
+  if(s>5.47&&!afterOn){afterOn=true;afterT=time}if(s<5.3)afterOn=false;
+  document.getElementById('after').style.opacity=afterOn?.85*Math.exp(-Math.max(0,time-afterT)*1.4):0;
+  UN.uMix.value=v2w;UN.uIn.value=sm((s-5.8)/.5);UN.uTime.value=time;US.uTime.value=time;US.uIn.value=nat;
+  // 見回す：ドラッグの慣性＋手の位置のわずかな視差
+  look.yaw+=(look.ty+ptr.nx*.06-look.yaw)*.06;look.pitch+=(look.tp+ptr.ny*.03-look.pitch)*.06;look.wind.multiplyScalar(Math.pow(.15,dt));
+  US.uWind.value.copy(look.wind);cam360.rotation.set(look.pitch,-look.yaw,0);cam360.position.set(0,0,(1-sm((s-5.5)/1.4))*1.2);
+  shade.style.opacity=sm((s-6.2)/.5)*.9;document.body.classList.toggle('nature',nat>.5);
+  bloom.strength=.75+bump(s,5,.5)*.2+(state==='in'?(1-ip)*.5:hold*.6);
+  FIN.uniforms.uTime.value=time;FIN.uniforms.uCA.value=.0015+Math.min(.01,vel*.006)+bump(s,4.8,.4)*.02;
+  const st=inP2?Math.min(3,Math.floor(P.s+.001)):Math.min(7,Math.round(s)),pk=(inP2?'p':'v')+st;
+  if(pk!==lastPh){lastPh=pk;phraseEl.classList.add('fade');setTimeout(()=>{const p=PHRASES[st];phraseEl.innerHTML=p.map(t=>`<span>${t}</span>`).join('');phraseEl.classList.remove('fade')},450);tocBtns.forEach((b,i)=>b.setAttribute('aria-current',i===(inP2?st:TOCMAP[st])?'true':'false'))}
+  if(inP2)A.ambient(st);else A.update(s,vel*60,ptr.speed,time*2.6);
+  if(!inP2||diving){if(s<5.5)composer.render();else renderer.render(natScene,cam360)}
+}
+requestAnimationFrame(frame);
+window.__aether={run(sec=1){forceS=null;let t=last;for(let i=0;i<sec*30;i++){t+=33;update(t)}return{p2:window.P2&&+P2.s.toFixed(3),s:+s.toFixed(3),cls:root.className}},shot(v,sec=4){forceS=v;if(state==='intro')enter();enterAt-=1e5;let t=last;for(let i=0;i<sec*30;i++){t+=33;update(t)}return v}};
+document.addEventListener('visibilitychange',()=>{if(A.ctx){document.hidden?A.ctx.suspend():A.on&&A.ctx.resume()}});
+</script>
+<script type="module">
+/* ───────── 冒頭：顕微鏡（p2 ×1,000,000）。実標本（Wikimedia Commons）だけで 生命→食べる→持つ→知る を辿る ───────── */
+import * as THREE from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+
+/* ───────── media (Wikimedia Commons) ───────── */
+const WM='https://upload.wikimedia.org/wikipedia/commons/';
+const nameOf=p=>p.split('/').pop();
+const thumb=(p,w,seek)=>WM+'thumb/'+p+'/'+w+'px-'+(seek!=null?'seek%3D'+seek+'-':'-')+nameOf(p)+(/\.(jpg|jpeg|png)$/i.test(p)?'':'.jpg');
+const trans=(p,q)=>WM+'transcoded/'+p+'/'+nameOf(p)+'.'+q;
+const P={
+  emb:'f/f0/Prediction-model-for-aneuploidy-in-early-human-embryo-development-revealed-by-single-cell-analysis-ncomms8601-s3.ogv',
+  dros:'b/b6/Drosophila_cleavage_and_gastrulation.webm',
+  fucci:'9/9b/Drug-induced-cell-cycle-modulation-leading-to-cell-cycle-arrest-nuclear-mis-segregation-or-1471-2121-12-2-S4.ogv',
+  breath:'2/29/Breathing_man.ogg',
+  villi:'4/4c/Cross-section_histology_of_small_intestinal_villi_of_the_terminal_ileum.jpg',
+  peri:'3/3c/Peristalsis-in-the-junction-region-of-the-Drosophila-larval-midgut-is-modulated-by-DH31-expressing-1472-6793-10-14-S7.ogv',
+  tem:'2/25/Human_skeletal_muscle_tissue_1_-_TEM.jpg',
+  cardio:'4/42/Autonomous-beating-rate-adaptation-in-human-stem-cell-derived-cardiomyocytes-ncomms10312-s3.ogv',
+  heart:'b/b5/Human_heart_beating_at_61_bpm_%28Cc-by-3.0%29.ogg',
+  nmj:'a/aa/Electron_micrograph_of_neuromuscular_junction_%28cross-section%29.jpg',
+  ca:'a/a1/Calcium-imaging-of-sleep%E2%80%93wake-related-neuronal-activity-in-the-dorsal-pons-ncomms10763-s2.ogv',
+  bb:'8/8c/Brainbow_%28Smith_2007%29.jpg'
+};
+const FAIL=[];window.__p2fail=FAIL;
+
+// polite loader: max 3 in flight, retries with back-off (Wikimedia thumbnails are rate-limited)
+const LQ=[];let lBusy=0;
+function loadImg(url,tag,prio){return new Promise(res=>{const j={url,tag,tries:4,res};prio?LQ.unshift(j):LQ.push(j);pump()})}
+function pump(){while(lBusy<3&&LQ.length){const j=LQ.shift();lBusy++;const i=new Image();i.crossOrigin='anonymous';i.decoding='async';
+  i.onload=()=>{lBusy--;j.res(i);pump()};
+  i.onerror=()=>{lBusy--;if(--j.tries>0)setTimeout(()=>{LQ.push(j);pump()},1200*(5-j.tries));else{FAIL.push(j.tag||j.url);j.res(null)}pump()};i.src=j.url}}
+
+/* A "source" = one real recording. Video when it can play, otherwise its own frames as stop-motion. */
+class Src{
+  constructor(o){Object.assign(this,o);this.cv=document.createElement('canvas');this.cv.width=o.w;this.cv.height=o.h;this.cx=this.cv.getContext('2d',{willReadFrequently:!!o.read});
+    this.cx.fillStyle='#8c8c8c';this.cx.fillRect(0,0,o.w,o.h);this.tex=new THREE.CanvasTexture(this.cv);this.tex.minFilter=THREE.LinearFilter;this.tex.generateMipmaps=false;
+    this.stills=[];this.mode='none';this.lastKey=-1;this.active=false;this.t=0;
+    if(o.video){const v=document.createElement('video');v.className='vid';v.crossOrigin='anonymous';v.muted=true;v.loop=true;v.playsInline=true;v.preload='auto';v.setAttribute('aria-hidden','true');
+      v.onerror=()=>FAIL.push(o.tag+':video');v.src=o.video;document.body.appendChild(v);this.v=v}
+    (o.seeks||[]).forEach((sk,i)=>loadImg(thumb(o.path,o.tw,sk),o.tag+':still'+sk).then(im=>{if(im)this.stills.push({im,sk});this.stills.sort((a,b)=>a.sk-b.sk);this.onStill&&this.onStill(this)}));
+  }
+  setActive(on){if(on===this.active)return;this.active=on;if(!this.v)return;if(on){const p=this.v.play();p&&p.catch(()=>{})}else this.v.pause()}
+  draw(time){
+    if(!this.active)return;
+    const v=this.v;
+    if(v&&v.readyState>=2&&v.videoWidth){
+      if(this.loopEnd&&v.currentTime>this.loopEnd)v.currentTime=this.loopStart||0;
+      this.cx.drawImage(v,0,0,this.w,this.h);this.tex.needsUpdate=true;this.mode='video';this.t=v.currentTime;return}
+    if(this.stills.length){const n=this.stills.length,k=Math.floor(time*(this.fps||1.6))%n;
+      if(k!==this.lastKey){this.lastKey=k;this.cx.drawImage(this.stills[k].im,0,0,this.w,this.h);this.tex.needsUpdate=true}
+      this.mode='frames';this.t=this.stills[k].sk;return}
+    this.mode='none';
+  }
+}
+const SRC={
+  emb:new Src({tag:'emb',path:P.emb,video:trans(P.emb,'360p.vp9.webm'),w:640,h:360,tw:500,seeks:[1,3,5,7,9,11,13,15,17,19,21,23],loopStart:.2,loopEnd:23.6,fps:1.4}),
+  dros:new Src({tag:'dros',path:P.dros,video:trans(P.dros,'480p.vp9.webm'),w:960,h:400,tw:960,seeks:[2,8,14,20,27],fps:1.2}),
+  fucci:new Src({tag:'fucci',path:P.fucci,video:trans(P.fucci,'360p.vp9.webm'),w:680,h:512,tw:500,seeks:[2,9,16,23],fps:1}),
+  peri:new Src({tag:'peri',path:P.peri,video:trans(P.peri,'240p.vp9.webm'),w:40,h:30,read:true}),
+  cardio:new Src({tag:'cardio',path:P.cardio,video:trans(P.cardio,'360p.vp9.webm'),w:320,h:240,tw:330,seeks:[1,2,3,4,6,8,10],fps:3}),
+  ca:new Src({tag:'ca',path:P.ca,video:trans(P.ca,'240p.vp9.webm'),w:514,h:294,tw:330,seeks:[2,6,10,14,18,22,26,30,34],fps:2.2})
+};
+// Ca baseline F0 = mean of the clip's own frames → the shader shows ΔF/F, exactly how GCaMP data is read.
+const caF0=document.createElement('canvas');caF0.width=514;caF0.height=294;const caF0x=caF0.getContext('2d');caF0x.fillStyle='#222';caF0x.fillRect(0,0,514,294);
+const caF0tex=new THREE.CanvasTexture(caF0);caF0tex.minFilter=THREE.LinearFilter;caF0tex.generateMipmaps=false;
+SRC.ca.onStill=s=>{caF0x.clearRect(0,0,514,294);caF0x.globalAlpha=1;s.stills.forEach((f,i)=>{caF0x.globalAlpha=1/(i+1);caF0x.drawImage(f.im,0,0,514,294)});caF0x.globalAlpha=1;caF0tex.needsUpdate=true;
+  // noise floor σ of F−F0 inside the imaging panel → flashes are events above 2–4.5 σ (standard event detection)
+  if(s.stills.length<3)return;const x0=26,y0=32,w=205,h=200;const F0=caF0x.getImageData(x0,y0,w,h).data;const c=document.createElement('canvas');c.width=514;c.height=294;const cx=c.getContext('2d',{willReadFrequently:true});
+  let ss=0,n=0;s.stills.forEach(f=>{cx.drawImage(f.im,0,0,514,294);const d=cx.getImageData(x0,y0,w,h).data;let mu=0,m=0;for(let i=0;i<d.length;i+=16){mu+=(d[i]+d[i+1]+d[i+2]-F0[i]-F0[i+1]-F0[i+2])/765;m++}mu/=m;for(let i=0;i<d.length;i+=16){const v=(d[i]+d[i+1]+d[i+2]-F0[i]-F0[i+1]-F0[i+2])/765-mu;ss+=v*v;n++}});US.uCaSig.value=Math.max(.003,Math.sqrt(ss/n))};
+// global drift of the current frame (photobleaching / exposure), removed before ΔF
+function caDrift(){const a=SRC.ca.cx.getImageData(26,32,205,200).data,b=caF0x.getImageData(26,32,205,200).data;let mu=0,m=0;for(let i=0;i<a.length;i+=16){mu+=(a[i]+a[i+1]+a[i+2]-b[i]-b[i+1]-b[i+2])/765;m++}return mu/m}
+
+const IMG={};const blank=()=>{const t=new THREE.DataTexture(new Uint8Array([140,140,140,255]),1,1);t.needsUpdate=true;return t};
+const TX={tem:blank(),nmj:blank(),bb:blank()};
+function imgTex(im){const t=new THREE.Texture(im);t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;t.needsUpdate=true;return t}
+
+/* ───────── renderer ───────── */
+const canvas=document.getElementById('p2-gl');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'high-performance'});
+renderer.outputColorSpace=THREE.LinearSRGBColorSpace;renderer.toneMapping=THREE.NoToneMapping;
+const SMALL=Math.min(innerWidth,innerHeight)<700;
+let DPR=Math.min(devicePixelRatio||1,SMALL?1.5:1.5);renderer.setPixelRatio(DPR);
+let VW=innerWidth,VH=innerHeight,R=0;
+const rtOpt={depthBuffer:true,type:THREE.UnsignedByteType};
+const rtA=new THREE.WebGLRenderTarget(4,4,rtOpt),rtB=new THREE.WebGLRenderTarget(4,4,rtOpt),rtV=new THREE.WebGLRenderTarget(4,4,rtOpt);
+const quadGeo=new THREE.PlaneGeometry(2,2),oCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const VQ='void main(){gl_Position=vec4(position.xy,0.,1.);}';
+const COMMON=`
+float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
+`;
+
+/* specimen pass — one full-screen plane, every specimen sampled through the same field geometry */
+const US={
+  uRes:{value:new THREE.Vector2()},uC:{value:new THREE.Vector2()},uR:{value:1},uTime:{value:0},
+  uMA:{value:0},uMB:{value:0},uK:{value:0},
+  uW:{value:.18},uEmbC:{value:new THREE.Vector2()},uEmb:{value:new THREE.Vector4(160,180,1.1,0)},tEmb:{value:SRC.emb.tex},
+  tDros:{value:SRC.dros.tex},uDros:{value:new THREE.Vector4(480,200,1,0)},
+  tVil:{value:rtV.texture},
+  tTem:{value:TX.tem},tMap:{value:null},uTem:{value:new THREE.Vector4(1100,805,1,0)},uTemAx:{value:new THREE.Vector4(1,0,1000,0)},uTemSz:{value:new THREE.Vector2(2200,1611)},
+  tNmj:{value:TX.nmj},uNmj:{value:new THREE.Vector4(216,144,1,0)},
+  tBb:{value:TX.bb},uBb:{value:new THREE.Vector4(400,335,1,0)},tCa:{value:SRC.ca.tex},tCa0:{value:caF0tex},uDens:{value:1},uGain:{value:1},uCaSig:{value:.03},uCaMu:{value:0},
+  uFocus:{value:new THREE.Vector2()},uFocusAmt:{value:.6},uBreath:{value:0},uOptic:{value:0}
+};
+const specMat=new THREE.ShaderMaterial({uniforms:US,vertexShader:VQ,depthTest:false,depthWrite:false,fragmentShader:`
+precision highp float;
+${COMMON}
+uniform vec2 uRes,uC;uniform float uR,uTime,uK,uW;uniform int uMA,uMB;
+uniform vec2 uEmbC;uniform vec4 uEmb;uniform sampler2D tEmb;
+uniform sampler2D tDros;uniform vec4 uDros;
+uniform sampler2D tVil;
+uniform sampler2D tTem,tMap;uniform vec4 uTem,uTemAx;uniform vec2 uTemSz;
+uniform sampler2D tNmj;uniform vec4 uNmj;
+uniform sampler2D tBb,tCa,tCa0;uniform vec4 uBb;uniform float uDens,uGain,uCaSig,uCaMu;
+uniform vec2 uFocus;uniform float uFocusAmt,uBreath,uOptic;
+bool outside(vec2 uv){return uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.;}
+// generic: p (field units, y up) → source px (y down) → uv
+vec2 suv(vec2 p,vec4 xf,vec2 sz){vec2 s=xf.xy+vec2(p.x,-p.y)*xf.z;return vec2(s.x/sz.x,1.-s.y/sz.y);}
+vec4 emb(vec2 p){
+  vec2 um=p*uW*.5+uEmbC;                       // µm, centred on the zygote
+  vec2 s=uEmb.xy+vec2(um.x,-um.y)/uEmb.z;       // uEmb.z = µm per source px (zona pellucida = 150 µm)
+  vec2 uv=vec2(s.x/640.,1.-s.y/360.);
+  float v=outside(uv)?.62:lum(texture2D(tEmb,uv).rgb);
+  // below the optical limit the cytosol is only grain; grain is drawn at molecular size (6 nm) and fades once sub-pixel
+  float pxPerNm=uR/(uW*500.);
+  float g=vnoise(um*1000./6.)-.5;float amp=.12*smoothstep(.25,1.4,pxPerNm*6.);
+  float org=(vnoise(um/1.2)+vnoise(um/0.5)*.5-.75)*.10*smoothstep(.3,3.,uW)*(1.-smoothstep(15.,70.,uW));
+  float haze=.64+g*amp+org;
+  float a=smoothstep(3.,45.,uW);
+  return vec4(vec3(mix(haze,v,a)),.55*uOptic);
+}
+vec4 spec(int m,vec2 p){
+  if(m==0)return emb(p);
+  if(m==1){vec2 uv=suv(p,uDros,vec2(960.,400.));return vec4(outside(uv)?vec3(0.):texture2D(tDros,uv).rgb,0.);}
+  if(m==2){vec2 uv=(uC+p*uR)/uRes;if(outside(uv))return vec4(0.,0.,0.,0.);return texture2D(tVil,uv);}
+  if(m==3){ // sliding filaments: x is remapped per band (A-band rigid, I-band shortens), not squashed as a whole
+    float c=uTem.w;vec2 u=uTemAx.xy;vec2 v=vec2(-u.y,u.x);
+    float a=p.x*uTem.z;float b=-p.y*uTem.z*(1.-.07*c);
+    float idx=clamp((a+uTemAx.z)/(2.*uTemAx.z),0.,1.);
+    float as=texture2D(tMap,vec2(idx,.5)).r;
+    vec2 s=uTem.xy+as*u+b*v;vec2 uv=vec2(s.x/uTemSz.x,1.-s.y/uTemSz.y);
+    return vec4(vec3(outside(uv)?.5:lum(texture2D(tTem,uv).rgb)),0.);}
+  if(m==4){vec2 uv=suv(p,uNmj,vec2(433.,289.));return vec4(vec3(outside(uv)?.5:lum(texture2D(tNmj,uv).rgb)),0.);}
+  // m==5: Brainbow (per-neuron colour) × GCaMP ΔF/F (real calcium clip). More copies of the same recording = more firing.
+  vec2 uv=suv(p,uBb,vec2(800.,671.));vec3 bb=outside(uv)?vec3(0.):texture2D(tBb,uv).rgb;
+  float soma=smoothstep(.3,.55,max(bb.r,max(bb.g,bb.b)));
+  float fl=0.;
+  for(int i=0;i<7;i++){float fi=float(i);if(fi<uDens){
+    vec2 o=vec2(hash(vec2(fi,3.1)),hash(vec2(fi,7.7)));float sc=.8+hash(vec2(fi,1.3))*.6;
+    vec2 q=fract(uv*sc+o);vec2 cu=vec2(.05+q.x*.40,1.-(.11+q.y*.68));   // crop: the imaging panel of the figure
+    float F=lum(texture2D(tCa,cu).rgb),F0=lum(texture2D(tCa0,cu).rgb);
+    float z=(F-F0-uCaMu)/uCaSig;fl+=smoothstep(1.6,3.2,z)*clamp(uDens-fi,0.,1.);}}
+  vec3 col=bb*.62+vec3(.30,1.,.42)*min(fl,1.6)*soma*uGain*.8;
+  return vec4(col,0.);
+}
+void main(){
+  vec2 p=(gl_FragCoord.xy-uC)/uR;
+  vec4 o;
+  if(uK<=0.)o=spec(uMA,p);
+  else{vec4 a=spec(uMA,p+vec2(uK*2.6,0.));vec4 b=spec(uMB,p-vec2((1.-uK)*2.6,0.));o=mix(a,b,smoothstep(.4,.6,uK));}
+  float f=smoothstep(.16,1.05,length(p-uFocus))*uFocusAmt;
+  gl_FragColor=vec4(o.rgb,clamp(o.a+f+uBreath,0.,1.));
+}`});
+const specScene=new THREE.Scene();specScene.add(new THREE.Mesh(quadGeo,specMat));
+
+/* depth of field (CoC is carried in alpha by every specimen/material) */
+const UD={tA:{value:rtA.texture},uRes:{value:new THREE.Vector2()},uMax:{value:9}};
+const dofMat=new THREE.ShaderMaterial({uniforms:UD,vertexShader:VQ,depthTest:false,depthWrite:false,fragmentShader:`
+precision highp float;uniform sampler2D tA;uniform vec2 uRes;uniform float uMax;
+void main(){vec2 uv=gl_FragCoord.xy/uRes;vec4 c=texture2D(tA,uv);float coc=c.a;
+  if(coc<.02){gl_FragColor=vec4(c.rgb,1.);return;}
+  vec3 acc=c.rgb;float w=1.;
+  for(int i=1;i<32;i++){float fi=float(i);float r=sqrt(fi/31.)*coc*uMax;float a=fi*2.39996;vec4 s=texture2D(tA,uv+vec2(cos(a),sin(a))*r/uRes);float wi=clamp(s.a*1.6+.15,.15,1.);acc+=s.rgb*wi;w+=wi;}
+  gl_FragColor=vec4(acc/w,1.);}`});
+const dofScene=new THREE.Scene();dofScene.add(new THREE.Mesh(quadGeo,dofMat));
+
+/* the lens: phase-contrast halo (difference of local means), stage-sweep motion blur, grain, circular field */
+const UL={tB:{value:rtB.texture},uRes:{value:new THREE.Vector2()},uC:{value:new THREE.Vector2()},uR:{value:1},uTime:{value:0},uWhip:{value:0},uHalo:{value:1.1},uWhite:{value:0},uGrain:{value:.05},uDpr:{value:1}};
+const lensMat=new THREE.ShaderMaterial({uniforms:UL,vertexShader:VQ,depthTest:false,depthWrite:false,fragmentShader:`
+precision highp float;${COMMON}
+uniform sampler2D tB;uniform vec2 uRes,uC;uniform float uR,uTime,uWhip,uHalo,uWhite,uGrain,uDpr;
+void main(){vec2 fc=gl_FragCoord.xy;vec2 uv=fc/uRes;vec3 col;
+  if(uWhip>.001){col=vec3(0.);for(int i=0;i<18;i++){float t=float(i)/17.-.5;col+=texture2D(tB,uv+vec2(t*uWhip*140.*uDpr/uRes.x,0.)).rgb;}col/=18.;}
+  else col=texture2D(tB,uv).rgb;
+  float L=lum(col),m=0.;
+  for(int i=0;i<12;i++){float fi=float(i);float a=fi*2.39996;float r=(3.+fi*1.2)*uDpr;m+=lum(texture2D(tB,uv+vec2(cos(a),sin(a))*r/uRes).rgb);}
+  m/=12.;col+=(L-m)*uHalo*(1.-uWhite);
+  float d=length(fc-uC)/uR;
+  col*=mix(1.-.42*pow(smoothstep(.45,1.,d),2.),1.,uWhite);
+  col=mix(col,vec3(1.),uWhite);
+  col+=(hash(fc*.731+fract(uTime*7.3)*91.)-.5)*uGrain*(1.-uWhite*.8);
+  float mask=1.-smoothstep(uR-1.2*uDpr,uR+.6*uDpr,length(fc-uC));
+  gl_FragColor=vec4(clamp(col,0.,1.)*mask,1.);}`});
+const lensScene=new THREE.Scene();lensScene.add(new THREE.Mesh(quadGeo,lensMat));
+
+/* ───────── molecules: 6,000 hand-shaped blobs, 5 size classes, Brownian + collision (Stokes–Einstein) ───────── */
+// classes: diameter nm and count chosen so the slab is ~30 % occupied (Goodsell / Ellis: crowded cytoplasm)
+const CLS=[{d:3,n:2350,tone:.80},{d:5,n:1800,tone:.70},{d:8,n:1000,tone:.58},{d:12,n:620,tone:.46},{d:20,n:230,tone:.34}];
+const BOX=440,HB=BOX/2,SLAB=16;           // nm, periodic in x/y, reflecting in z
+const kT=1.380649e-23*310,ETA=3e-3;        // 310 K, effective cytoplasmic viscosity 3 mPa·s
+const TS=2e-7;                             // simulated seconds per real second (Δt ×2.0e-7)
+function blob(seed,elong,lobes){
+  const parts=[];const rnd=s=>{const x=Math.sin(s*127.1+seed*311.7)*43758.5453;return x-Math.floor(x)};
+  for(let l=0;l<lobes.length;l++){const [ox,oy,oz,sc]=lobes[l];const g=new THREE.IcosahedronGeometry(.5*sc,1);const pa=g.attributes.position;
+    for(let i=0;i<pa.count;i++){const x=pa.getX(i),y=pa.getY(i),z=pa.getZ(i);const n=1+.28*(Math.sin(x*9.1+seed)*Math.cos(y*7.3-seed*.7)+Math.sin(z*8.7+seed*1.9)*.6);pa.setXYZ(i,x*n*elong+ox,y*n+oy,z*n*.85+oz)}
+    parts.push(g)}
+  const m=mergeGeometries(parts);m.computeVertexNormals();return m}
+const SHAPES=[
+  [blob(1,1,[[0,0,0,1]]),blob(2,1.15,[[0,0,0,1]]),blob(3,1.05,[[0,0,0,1]])],
+  [blob(4,1.2,[[0,0,0,1]]),blob(5,1,[[0,0,0,1]]),blob(6,1.35,[[0,0,0,.95]])],
+  [blob(7,1.6,[[0,0,0,1]]),blob(8,1.3,[[-.18,0,0,.8],[.22,.05,0,.7]]),blob(9,1.1,[[0,0,0,1]])],
+  [blob(10,1,[[-.22,0,0,.7],[.24,.1,0,.65]]),blob(11,1,[[0,.2,0,.6],[-.2,-.15,0,.6],[.2,-.15,0,.6]]),blob(12,1.4,[[0,0,0,.95]])],
+  [blob(13,1,[[-.08,.12,0,.78],[.12,-.2,0,.6]]),blob(14,1,[[0,.14,0,.8],[.05,-.22,0,.55]]),blob(15,1.1,[[0,0,0,.9],[.3,.25,0,.35]])]
+];
+const N=CLS.reduce((a,c)=>a+c.n,0);
+const mx=new Float32Array(N),my=new Float32Array(N),mz=new Float32Array(N),mr=new Float32Array(N),mth=new Float32Array(N),mvx=new Float32Array(N),mvy=new Float32Array(N),msig=new Float32Array(N),msigR=new Float32Array(N);
+const mcls=new Uint8Array(N),mMesh=new Uint16Array(N),mSlot=new Uint16Array(N),bound=new Int32Array(N).fill(-1),bindT=new Float32Array(N);
+const BS=new Float32Array(N*9);
+const UM={uFz:{value:0},uVis:{value:1},uTone:{value:.5}};
+const molScene=new THREE.Scene();const meshes=[];
+{let id=0;const tmpQ=new THREE.Quaternion(),tmpE=new THREE.Euler(),m4=new THREE.Matrix4(),sc=new THREE.Vector3();
+  CLS.forEach((c,ci)=>{const per=[0,0,0];for(let k=0;k<c.n;k++)per[k%3]++;
+    for(let v=0;v<3;v++){const mat=new THREE.ShaderMaterial({uniforms:{uFz:UM.uFz,uVis:UM.uVis,uTone:{value:c.tone}},
+      vertexShader:`attribute float aR;varying vec3 vN;varying float vZ,vR;void main(){vec4 wp=modelMatrix*instanceMatrix*vec4(position,1.);vN=normalize(mat3(modelMatrix*instanceMatrix)*normal);vZ=wp.z;vR=aR;gl_Position=projectionMatrix*viewMatrix*wp;}`,
+      fragmentShader:`uniform float uFz,uVis,uTone;varying vec3 vN;varying float vZ,vR;void main(){if(vR>uVis)discard;float nz=clamp(normalize(vN).z,0.,1.);float sh=uTone*(.62+.38*nz);sh=mix(.14,sh,smoothstep(.0,.42,nz));gl_FragColor=vec4(vec3(sh),clamp(abs(vZ-uFz)/15.,0.,1.)*.95);}`});
+      const im=new THREE.InstancedMesh(SHAPES[ci][v],mat,per[v]);im.frustumCulled=false;const aR=new Float32Array(per[v]);
+      for(let k=0;k<per[v];k++){const i=id++;mcls[i]=ci;mMesh[i]=meshes.length;mSlot[i]=k;aR[k]=Math.random();mr[i]=c.d/2*(v===2&&ci===2?1.15:1);
+        const rad=mr[i]*1e-9;const D=kT/(6*Math.PI*ETA*rad)*1e18;msig[i]=Math.sqrt(2*D*TS);msigR[i]=Math.sqrt(2*(kT/(8*Math.PI*ETA*rad*rad*rad))*TS);
+        mx[i]=(Math.random()-.5)*BOX;my[i]=(Math.random()-.5)*BOX;mz[i]=(Math.random()-.5)*2*(SLAB-mr[i]*.5);mth[i]=Math.random()*6.283;
+        tmpE.set(Math.random()*6.28,Math.random()*6.28,0);tmpQ.setFromEuler(tmpE);const s=c.d*(.9+Math.random()*.2);sc.set(s,s,s);m4.compose(new THREE.Vector3(),tmpQ,sc);
+        const e=m4.elements;BS.set([e[0],e[1],e[2],e[4],e[5],e[6],e[8],e[9],e[10]],i*9)}
+      im.geometry=im.geometry.clone();im.geometry.setAttribute('aR',new THREE.InstancedBufferAttribute(aR,1));
+      meshes.push(im);molScene.add(im)}});}
+const molCam=new THREE.OrthographicCamera(-1,1,1,-1,-200,200);molCam.position.z=100;
+// spatial hash
+const CELL=20,GN=Math.ceil(BOX/CELL),cellStart=new Int32Array(GN*GN+1),cellIdx=new Int32Array(N),cellOf=new Int32Array(N);
+const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2832*v)};
+let simT=0,contactEv=0;
+function physics(dt){
+  simT+=dt*TS;
+  const sq=Math.sqrt(dt);
+  for(let i=0;i<N;i++){const k=Math.exp(-dt*9);mx[i]+=msig[i]*sq*gauss()+mvx[i]*dt;my[i]+=msig[i]*sq*gauss()+mvy[i]*dt;mz[i]+=msig[i]*sq*gauss()*.6;mvx[i]*=k;mvy[i]*=k;mth[i]+=msigR[i]*sq*gauss()*.5;
+    if(mx[i]>HB)mx[i]-=BOX;else if(mx[i]<-HB)mx[i]+=BOX;if(my[i]>HB)my[i]-=BOX;else if(my[i]<-HB)my[i]+=BOX;
+    const zl=SLAB-mr[i]*.5;if(mz[i]>zl)mz[i]=2*zl-mz[i];else if(mz[i]<-zl)mz[i]=-2*zl-mz[i];}
+  cellStart.fill(0);
+  for(let i=0;i<N;i++){const cx=Math.min(GN-1,Math.floor((mx[i]+HB)/CELL)),cy=Math.min(GN-1,Math.floor((my[i]+HB)/CELL));const c=cy*GN+cx;cellOf[i]=c;cellStart[c+1]++}
+  for(let c=0;c<GN*GN;c++)cellStart[c+1]+=cellStart[c];
+  const fill=cellStart.slice(0,GN*GN);for(let i=0;i<N;i++)cellIdx[fill[cellOf[i]]++]=i;
+  let ev=0;
+  for(let i=0;i<N;i++){const c=cellOf[i],cx=c%GN,cy=(c/GN)|0;
+    for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){const nx=(cx+ox+GN)%GN,ny=(cy+oy+GN)%GN,nc=ny*GN+nx;
+      for(let q=cellStart[nc];q<cellStart[nc+1];q++){const j=cellIdx[q];if(j<=i)continue;
+        let dx=mx[j]-mx[i],dy=my[j]-my[i];if(dx>HB)dx-=BOX;else if(dx<-HB)dx+=BOX;if(dy>HB)dy-=BOX;else if(dy<-HB)dy+=BOX;const dz=mz[j]-mz[i];
+        const rr=(mr[i]+mr[j])*.92,d2=dx*dx+dy*dy+dz*dz;if(d2>=rr*rr||d2<1e-6)continue;
+        const d=Math.sqrt(d2),ov=(rr-d)/d*.5;const wi=mr[j]**3/(mr[i]**3+mr[j]**3),wj=1-wi;
+        mx[i]-=dx*ov*wi;my[i]-=dy*ov*wi;mz[i]-=dz*ov*wi;mx[j]+=dx*ov*wj;my[j]+=dy*ov*wj;mz[j]+=dz*ov*wj;
+        // elastic share of momentum from pokes
+        const tvx=(mvx[i]-mvx[j])*.5,tvy=(mvy[i]-mvy[j])*.5;if(Math.abs(tvx)+Math.abs(tvy)>2){mvx[j]+=tvx;mvy[j]+=tvy;mvx[i]-=tvx;mvy[i]-=tvy}
+        if(rr-d>.25&&mr[i]+mr[j]>9)ev++;
+        // most collisions do not bind; a rare complementary pair (5 nm + 12 nm) sticks for a moment
+        if(bound[i]<0&&bound[j]<0&&((mcls[i]===1&&mcls[j]===3)||(mcls[i]===3&&mcls[j]===1))&&Math.random()<.004){bound[i]=j;bound[j]=i;bindT[i]=bindT[j]=.8+Math.random()*2.2}}}}
+  for(let i=0;i<N;i++){const j=bound[i];if(j<0)continue;bindT[i]-=dt;if(bindT[i]<=0){bound[i]=-1;if(bound[j]===i)bound[j]=-1;continue}
+    if(j<i)continue;let dx=mx[j]-mx[i],dy=my[j]-my[i];if(dx>HB)dx-=BOX;else if(dx<-HB)dx+=BOX;if(dy>HB)dy-=BOX;else if(dy<-HB)dy+=BOX;const d=Math.hypot(dx,dy)||1,t=(mr[i]+mr[j])*.9;const k=(d-t)/d*.25;mx[i]+=dx*k;my[i]+=dy*k;mx[j]-=dx*k;my[j]-=dy*k}
+  contactEv=ev;
+}
+function writeInstances(ox,oy){
+  for(let i=0;i<N;i++){const im=meshes[mMesh[i]],e=im.instanceMatrix.array,o=mSlot[i]*16,b=i*9,c=Math.cos(mth[i]),s=Math.sin(mth[i]);
+    // M = Rz(θ)·B ; column-major
+    e[o]=c*BS[b]-s*BS[b+1];e[o+1]=s*BS[b]+c*BS[b+1];e[o+2]=BS[b+2];e[o+3]=0;
+    e[o+4]=c*BS[b+3]-s*BS[b+4];e[o+5]=s*BS[b+3]+c*BS[b+4];e[o+6]=BS[b+5];e[o+7]=0;
+    e[o+8]=c*BS[b+6]-s*BS[b+7];e[o+9]=s*BS[b+6]+c*BS[b+7];e[o+10]=BS[b+8];e[o+11]=0;
+    e[o+12]=mx[i]+ox;e[o+13]=my[i]+oy;e[o+14]=mz[i];e[o+15]=1}
+  meshes.forEach(m=>m.instanceMatrix.needsUpdate=true)}
+function poke(nmX,nmY){for(let i=0;i<N;i++){let dx=mx[i]-nmX,dy=my[i]-nmY;if(dx>HB)dx-=BOX;else if(dx<-HB)dx+=BOX;if(dy>HB)dy-=BOX;else if(dy<-HB)dy+=BOX;const d=Math.hypot(dx,dy);if(d<46&&d>.01){const f=(1-d/46)*260/Math.sqrt(mr[i]);mvx[i]+=dx/d*f;mvy[i]+=dy/d*f;bound[i]=-1}}}
+
+/* ───────── villi: the CC0 H&E section as a height field, lit by an endoscope tip that follows the hand ───────── */
+const vilScene=new THREE.Scene();vilScene.background=new THREE.Color(0x000000);
+const vilCam=new THREE.PerspectiveCamera(42,1,.05,60);
+vilScene.add(new THREE.AmbientLight(0xffffff,.05));
+const spot=new THREE.SpotLight(0xffffff,7,0,.55,.85,.55);vilScene.add(spot,spot.target);
+const ring=new THREE.PointLight(0xffffff,.35,3.5,1.5);vilScene.add(ring);
+const UV={uWaveX:{value:-6},uWaveA:{value:0},uFd:{value:3},uFr:{value:1.4}};
+const vilMat=new THREE.MeshPhysicalMaterial({color:new THREE.Color().setRGB(.847,.847,.847),roughness:.78,metalness:0,clearcoat:1,clearcoatRoughness:.22,displacementScale:.26,displacementBias:-.03});
+vilMat.onBeforeCompile=sh=>{Object.assign(sh.uniforms,UV);
+  sh.vertexShader='uniform float uWaveX,uWaveA;\n'+sh.vertexShader.replace('#include <displacementmap_vertex>','#include <displacementmap_vertex>\n float wv=exp(-pow((position.x-uWaveX)/1.1,2.));transformed+=normalize(objectNormal)*uWaveA*wv;transformed.y*=1.;');
+  sh.fragmentShader='uniform float uFd,uFr;\n'+sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\n gl_FragColor.a=clamp(abs(vViewPosition.z-uFd)/uFr,0.,1.);')};
+const VILW=10,VILH=10*1532/2048;
+const vilMesh=new THREE.Mesh(new THREE.PlaneGeometry(VILW,VILH,SMALL?320:512,SMALL?240:384),vilMat);vilMesh.rotation.x=-Math.PI/2;vilScene.add(vilMesh);
+const VIL_UM_PER_UNIT=900/VILW;    // section ≈ 0.9 mm wide (ileal villus ≈ 120–150 µm across)
+function buildVilli(im){
+  const w=1024,h=Math.round(1024*im.height/im.width);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});
+  x.drawImage(im,0,0,w,h);const d=x.getImageData(0,0,w,h).data;
+  const H=new Float32Array(w*h);for(let i=0;i<w*h;i++){const L=(d[i*4]*.299+d[i*4+1]*.587+d[i*4+2]*.114)/255;H[i]=Math.min(1,Math.max(0,(.93-L)/.42))}
+  // height (tissue high, lumen low), blurred
+  const hc=document.createElement('canvas');hc.width=w;hc.height=h;const hx=hc.getContext('2d');const hd=hx.createImageData(w,h);
+  for(let i=0;i<w*h;i++){const v=Math.pow(H[i],.8)*255;hd.data[i*4]=hd.data[i*4+1]=hd.data[i*4+2]=v;hd.data[i*4+3]=255}hx.putImageData(hd,0,0);
+  const hb=document.createElement('canvas');hb.width=w;hb.height=h;const hbx=hb.getContext('2d',{willReadFrequently:true});hbx.filter='blur(2.2px)';hbx.drawImage(hc,0,0);
+  const B=hbx.getImageData(0,0,w,h).data;
+  const nc=document.createElement('canvas');nc.width=w;nc.height=h;const nx=nc.getContext('2d');const nd=nx.createImageData(w,h);const S=6;
+  for(let y=0;y<h;y++)for(let X=0;X<w;X++){const g=(xx,yy)=>B[((Math.min(h-1,Math.max(0,yy)))*w+Math.min(w-1,Math.max(0,xx)))*4]/255;
+    const dx=(g(X+1,y)-g(X-1,y))*S,dy=(g(X,y+1)-g(X,y-1))*S;const l=Math.hypot(dx,dy,1);const o=(y*w+X)*4;nd.data[o]=(-dx/l*.5+.5)*255;nd.data[o+1]=(dy/l*.5+.5)*255;nd.data[o+2]=(1/l*.5+.5)*255;nd.data[o+3]=255}
+  nx.putImageData(nd,0,0);
+  // albedo: the stain kept only as tone (colour is reserved for living activity)
+  const ac=document.createElement('canvas');ac.width=w;ac.height=h;const ax=ac.getContext('2d');ax.filter='grayscale(1) contrast(1.15) brightness(1.05)';ax.drawImage(im,0,0,w,h);
+  const T=(cv)=>{const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t};
+  vilMat.map=T(ac);vilMat.displacementMap=T(hb);vilMat.normalMap=T(nc);vilMat.normalScale=new THREE.Vector2(1.1,1.1);vilMat.needsUpdate=true;
+}
+
+/* ───────── sarcomeres: Z-lines measured from the TEM itself ───────── */
+const MAPN=2048,mapArr=new Float32Array(MAPN);const tMap=new THREE.DataTexture(mapArr,MAPN,1,THREE.RedFormat,THREE.FloatType);tMap.minFilter=tMap.magFilter=THREE.NearestFilter;tMap.needsUpdate=true;US.tMap.value=tMap;
+const TEM={ok:false,ux:1,uy:0,period:180,Z:[],amax:1400,cx:1100,cy:805};
+function analyseTEM(im,fixed){
+  const w=640,h=Math.round(640*im.height/im.width),sc=im.width/640;const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,w,h);
+  const d=x.getImageData(0,0,w,h).data;const L=new Float32Array(w*h);for(let i=0;i<w*h;i++)L[i]=(d[i*4]+d[i*4+1]+d[i*4+2])/765;
+  const NB=Math.ceil(Math.hypot(w,h))+2;
+  const profile=(th)=>{const ux=Math.cos(th),uy=Math.sin(th),pr=new Float32Array(NB),cn=new Float32Array(NB);
+    for(let y=h*.12|0;y<h*.88;y+=2)for(let X=w*.12|0;X<w*.88;X+=2){const a=Math.round((X-w/2)*ux+(y-h/2)*uy+NB/2);pr[a]+=L[y*w+X];cn[a]++}
+    for(let i=0;i<NB;i++)pr[i]=cn[i]>20?pr[i]/cn[i]:NaN;return pr};
+  const hp=(pr)=>{const o=new Float32Array(NB);for(let i=0;i<NB;i++){if(isNaN(pr[i])){o[i]=NaN;continue}let s=0,n=0;for(let k=-22;k<=22;k++){const v=pr[i+k];if(v===v&&v!==undefined){s+=v;n++}}o[i]=pr[i]-s/n}return o};
+  const energy=(o)=>{let s=0,n=0;for(const v of o)if(v===v){s+=v*v;n++}return n?s/n:0};
+  let best=0,bth=fixed||0;const lo=fixed!=null?fixed-8:-80,hi=fixed!=null?fixed+8:80;for(let deg=lo;deg<=hi;deg+=2){const e=energy(hp(profile(deg*Math.PI/180)));if(e>best){best=e;bth=deg}}
+  for(let deg=bth-2;deg<=bth+2;deg+=.5){const e=energy(hp(profile(deg*Math.PI/180)));if(e>best){best=e;bth=deg}}
+  const th=bth*Math.PI/180,o=hp(profile(th));
+  // period by autocorrelation
+  let bp=40,bc=-1e9;for(let lag=18;lag<160;lag++){let s=0,n=0;for(let i=0;i+lag<NB;i++){const a=o[i],b=o[i+lag];if(a===a&&b===b){s+=a*b;n++}}const c2=n>50?s/n:-1e9;if(c2>bc&&lag>18){bc=c2;bp=lag}}
+  // refine to first strong peak (avoid harmonics)
+  // Z-lines: darkest phase of the periodic profile, each refined to its local minimum
+  let bphi=0,bv=1e9;for(let phi=0;phi<bp;phi++){let s=0,n=0;for(let i=phi;i<NB;i+=bp){if(o[i]===o[i]){s+=o[i];n++}}if(n&&s/n<bv){bv=s/n;bphi=phi}}
+  const Z=[];for(let i=bphi;i<NB;i+=bp){if(!(o[i]===o[i]))continue;let mi=i,mv=o[i];for(let k=-Math.round(bp*.18);k<=Math.round(bp*.18);k++){const v=o[i+k];if(v===v&&v<mv){mv=v;mi=i+k}}Z.push((mi-NB/2)*sc)}
+  Object.assign(TEM,{ok:Z.length>3,ux:Math.cos(th),uy:Math.sin(th),period:bp*sc,Z,amax:NB/2*sc,cx:im.width/2,cy:im.height/2,deg:bth});
+  US.uTemAx.value.set(TEM.ux,TEM.uy,TEM.amax,0);US.uTemSz.value.set(im.width,im.height);
+}
+const FI=.22;
+function buildMap(c){ // c = contraction 0..1 (I-band shortening)
+  const Z=TEM.Z,A=TEM.amax;if(!TEM.ok){for(let i=0;i<MAPN;i++)mapArr[i]=-A+2*A*i/(MAPN-1);tMap.needsUpdate=true;return}
+  // knots src→out, anchored at the Z-line nearest the centre of view
+  let k0=0;Z.forEach((z,i)=>{if(Math.abs(z)<Math.abs(Z[k0]))k0=i});
+  const S=[],O=[];const out=new Array(Z.length);out[k0]=Z[k0];
+  for(let k=k0;k<Z.length-1;k++){const L=Z[k+1]-Z[k];out[k+1]=out[k]+L*(1-2*FI*c)}
+  for(let k=k0;k>0;k--){const L=Z[k]-Z[k-1];out[k-1]=out[k]-L*(1-2*FI*c)}
+  S.push(Z[0]-1e5);O.push(out[0]-1e5);
+  for(let k=0;k<Z.length;k++){S.push(Z[k]);O.push(out[k]);if(k<Z.length-1){const L=Z[k+1]-Z[k],ol=L*FI*(1-c);S.push(Z[k]+L*FI,Z[k+1]-L*FI);O.push(out[k]+ol,out[k+1]-ol)}}
+  S.push(Z[Z.length-1]+1e5);O.push(out[Z.length-1]+1e5);
+  let j=0;for(let i=0;i<MAPN;i++){const x=-A+2*A*i/(MAPN-1);while(j<O.length-2&&O[j+1]<x)j++;const t=(x-O[j])/(O[j+1]-O[j]);mapArr[i]=S[j]+(S[j+1]-S[j])*t}
+  tMap.needsUpdate=true}
+buildMap(0);
+
+/* ───────── real data: breath envelope, heart onsets ───────── */
+const DATA={breath:null,bDur:22.3,heart:null,hDur:14,onsets:[],hBuf:null,bBuf:null};
+async function decode(path){const ab=await (await fetch(WM+path)).arrayBuffer();const oc=new OfflineAudioContext(1,44100,44100);return await oc.decodeAudioData(ab)}
+function envelope(buf,win){const d=buf.getChannelData(0),sr=buf.sampleRate,n=Math.floor(d.length/(sr*win)),e=new Float32Array(n);
+  for(let i=0;i<n;i++){let s=0;const a=Math.floor(i*sr*win),b=Math.floor((i+1)*sr*win);for(let k=a;k<b;k++)s+=d[k]*d[k];e[i]=Math.sqrt(s/(b-a))}let mx=0;for(const v of e)mx=Math.max(mx,v);for(let i=0;i<n;i++)e[i]/=mx||1;return e}
+decode(P.breath).then(b=>{DATA.bBuf=b;DATA.bDur=b.duration;const e=envelope(b,.05);const sm=new Float32Array(e.length);let a=0;for(let i=0;i<e.length;i++){a+=(e[i]-a)*.12;sm[i]=a}let m=0;for(const v of sm)m=Math.max(m,v);for(let i=0;i<sm.length;i++)sm[i]/=m||1;DATA.breath=sm}).catch(()=>FAIL.push('breath'));
+decode(P.heart).then(b=>{DATA.hBuf=b;DATA.hDur=b.duration;const e=envelope(b,.01);const on=[];let last=-1;for(let i=1;i<e.length;i++){const t=i*.01;if(e[i]>.38&&e[i-1]<=.38&&t-last>.62){on.push(t);last=t}}DATA.onsets=on}).catch(()=>FAIL.push('heart'));
+const breathAt=t=>{const b=DATA.breath;if(!b)return .5+.5*Math.sin(t*6.283/4.6);return b[Math.floor((t%DATA.bDur)/.05)%b.length]};
+function heartPulse(t){ // seconds since last real onset in the 61 bpm recording
+  const on=DATA.onsets;if(on.length<3){const ph=t%(60/61);return ph}
+  const tt=t%DATA.hDur;let last=on[on.length-1]-DATA.hDur;for(const o of on){if(o<=tt)last=o;else break}return tt-last}
+
+/* ───────── sound ───────── */
+const A={ctx:null,on:false,lastTick:0,
+  init(){if(this.ctx)return;const c=this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.out=c.createGain();this.out.gain.value=0;this.out.connect(c.destination);
+    const nb=c.createBuffer(1,c.sampleRate*2,c.sampleRate),d=nb.getChannelData(0);let b=0;for(let i=0;i<d.length;i++){b=.985*b+.015*(Math.random()*2-1);d[i]=b*3}
+    this.noise=nb;const rs=c.createBufferSource();rs.buffer=nb;rs.loop=true;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=380;this.room=c.createGain();this.room.gain.value=.05;rs.connect(lp).connect(this.room).connect(this.out);rs.start();
+    this.hg=c.createGain();this.hg.gain.value=0;const hl=c.createBiquadFilter();hl.type='lowpass';hl.frequency.value=240;hl.connect(this.hg).connect(this.out);this.hl=hl;
+    this.wn=c.createBuffer(1,c.sampleRate*.3,c.sampleRate);const w=this.wn.getChannelData(0);for(let i=0;i<w.length;i++)w[i]=Math.random()*2-1;
+    this.startHeart()},
+  startHeart(){if(!this.ctx||!DATA.hBuf||this.hs)return;const s=this.ctx.createBufferSource();s.buffer=DATA.hBuf;s.loop=true;s.connect(this.hl);s.start();this.hs=s;this.hStart=this.ctx.currentTime},
+  aud:false,
+  setOn(on){this.init();this.on=on;if(on&&this.ctx.state==='suspended')this.ctx.resume();this.out.gain.setTargetAtTime(on&&this.aud?.9:0,this.ctx.currentTime,.3)},
+  audible(b){if(b===this.aud)return;this.aud=b;if(this.ctx)this.out.gain.setTargetAtTime(this.on&&b?.9:0,this.ctx.currentTime,.06)},
+  burst(f,q,g,dec,pan=0,type='bandpass'){if(!this.on)return;const c=this.ctx,t=c.currentTime,s=c.createBufferSource();s.buffer=this.wn;const bp=c.createBiquadFilter();bp.type=type;bp.frequency.value=f;bp.Q.value=q;const gn=c.createGain();gn.gain.setValueAtTime(g,t);gn.gain.exponentialRampToValueAtTime(.0001,t+dec);const p=c.createStereoPanner();p.pan.value=pan;s.connect(bp).connect(gn).connect(p).connect(this.out);s.start(t);s.stop(t+dec+.05)},
+  click(){this.burst(2600,3,.35,.035)},
+  tick(pan){this.burst(5200,6,.05,.012,pan,'highpass')},
+  pizz(f,pan){this.burst(f,38,1.1,.5,pan)},
+  thump(){if(!this.on)return;const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(42,t+.18);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.connect(g).connect(this.out);o.start(t);o.stop(t+.3);this.burst(3400,8,.25,.02)},
+  update(heartAmt){if(!this.ctx)return;if(!this.hs)this.startHeart();this.hg.gain.setTargetAtTime(heartAmt*.9,this.ctx.currentTime,.25)}
+};
+
+/* ───────── load still images ───────── */
+loadImg(thumb(P.villi,1280),'villi',1).then(im=>{if(im)buildVilli(im)});
+loadImg(thumb(P.tem,1280),'tem',1).then(im=>{if(!im)return;IMG.tem=im;TX.tem=imgTex(im);US.tTem.value=TX.tem;try{analyseTEM(im,30)}catch(e){FAIL.push('tem-analysis')}buildMap(0)});
+loadImg(WM+P.nmj,'nmj').then(im=>{if(!im)return;TX.nmj=imgTex(im);US.tNmj.value=TX.nmj});
+loadImg(WM+P.bb,'bb').then(im=>{if(!im)return;TX.bb=imgTex(im);US.tBb.value=TX.bb});
+
+/* ───────── calibration (µm per source px), each from a known biological size ───────── */
+const CAL={
+  emb:{cx:472,cy:151,umPerPx:150/96},          // zona pellucida outer Ø ≈ 150 µm
+  dros:{cx:480,cy:205,umPerPx:500/790},       // Drosophila embryo ≈ 500 µm long
+  nmj:{cx:236,cy:138,umPerPx:2.6/433},        // junctional folds ≈ 0.5–1 µm deep
+  bb:{cx:400,cy:335,umPerPx:250/800}          // cortical somata ≈ 15–20 µm
+};
+
+/* ───────── layout / scroll ───────── */
+const ui=document.getElementById('p2-ui'),ux=ui.getContext('2d'),tx=document.getElementById('p2-tx'),txx=tx.getContext('2d');
+const inset=document.getElementById('p2-inset'),ix=inset.getContext('2d'),insetL=document.getElementById('p2-insetL');
+let SH=1;const ZONE=4.15;
+function resize(){VW=innerWidth;VH=innerHeight;renderer.setSize(VW,VH,false);const w=Math.floor(VW*DPR),h=Math.floor(VH*DPR);[rtA,rtB,rtV].forEach(r=>r.setSize(w,h));
+  [ui,tx].forEach(c=>{c.width=w;c.height=h});inset.width=inset.height=Math.round(132*DPR);
+  vilCam.aspect=VW/VH;vilCam.updateProjectionMatrix();SH=VH*1.5;document.getElementById('p2zone').style.height=(SH*ZONE)+'px';dispatchEvent(new Event('p2layout'));
+  UD.uRes.value.set(w,h);UL.uRes.value.set(w,h);US.uRes.value.set(w,h);UL.uDpr.value=DPR}
+addEventListener('resize',resize);resize();
+
+const ptr={x:VW*.5,y:VH*.5,in:false,fx:0,fy:0};
+addEventListener('pointermove',e=>{ptr.x=e.clientX;ptr.y=e.clientY;ptr.in=true});
+addEventListener('pointerleave',()=>ptr.in=false);
+let pokeQ=null;
+addEventListener('pointerdown',e=>{if(e.target.closest('button,a'))return;pokeQ={x:e.clientX,y:e.clientY}});
+
+/* slides along s (scroll = time). A mechanical stage sweep sits on each boundary. */
+const SL=[{m:0,at:0},{m:1,at:.80},{m:2,at:1.0},{m:3,at:2.0},{m:4,at:3.0},{m:5,at:3.16}],WW=.035;
+function slideAt(s){for(let i=1;i<SL.length;i++){const a=SL[i].at;if(s>=a-WW&&s<a+WW)return{A:SL[i-1].m,B:SL[i].m,k:(s-(a-WW))/(2*WW)};if(s<a-WW)return{A:SL[i-1].m,B:SL[i-1].m,k:0}}return{A:5,B:5,k:0}}
+const sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
+
+const SPEC=['human zygote','drosophila embryo','ileal villi · H&E','skeletal muscle · TEM','neuromuscular junction · EM','cortex · Brainbow × GCaMP'];
+const CRED=[
+  ['Human zygote — Vera-Rodriguez M et al., Nat Commun 6:7601 (2015), CC BY 4.0','FUCCI — Sakaue-Sawano A et al., BMC Cell Biol 12:2 (2011), CC BY 2.0','Breathing — hugh, PD · Molecules: Stokes–Einstein model, 310 K, η 3 mPa·s, φ ≈ 0.3'],
+  ['Drosophila cleavage and gastrulation — Bruno C. Vellutini, CC BY-SA 4.0 (unedited)'],
+  ['Ileal villi, H&E — Mikael Häggström, CC0','Midgut peristalsis — LaJeunesse D et al., BMC Physiol 10:14 (2010), CC BY 2.0'],
+  ['Human skeletal muscle, TEM — Louisa Howard, PD','hiPSC cardiomyocytes — Eng G et al., Nat Commun 7:10312 (2016), CC BY 4.0','Heart 61 bpm — Benboncan, CC BY 3.0'],
+  ['Neuromuscular junction, EM — NIMH, PD'],
+  ['Brainbow — Stephen J Smith (2007), CC BY 3.0','Ca²⁺ imaging — Cox J et al., Nat Commun 7:10763 (2016), CC BY 4.0']
+];
+const $=id=>document.getElementById(id);
+const el={clk:$('p2-clk'),rate:$('p2-rate'),spec:$('p2-spec'),bar:$('p2-bar'),sbl:$('p2-sbl'),mag:$('p2-mag'),cred:$('p2-cred')};
+let lastSpec=-1,lastStage=-1,lastCred='';
+function fmtLen(um){if(um<1)return +(um*1000).toPrecision(3)+' nm';if(um<1000)return +um.toPrecision(3)+' µm';if(um<1e6)return +(um/1000).toPrecision(3)+' mm';if(um<1e9)return +(um/1e6).toPrecision(3)+' m';if(um<1e12)return +(um/1e9).toPrecision(3)+' km';
+  const e=Math.floor(Math.log10(um/1e9));return '1'+'0'.repeat(Math.min(e,400))+' km'}
+function niceBar(pxPerUm,target){const um=target/pxPerUm;const p=Math.pow(10,Math.floor(Math.log10(um)));const n=um/p;const m=n<1.5?1:n<3.5?2:n<7.5?5:10;return m*p}
+const hms=s=>{s=Math.max(0,s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=Math.floor(s%60);return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`};
+
+/* ───────── main loop ───────── */
+let caKey='',s=0,last=performance.now(),t0=last,forceS=null,time=0,wasClock=false,nextBeat=0,lastWhipMid=false,flashPrev=0,caProbe=null,periSig=0,periBase=-1,periPhase=0;
+const ray=new THREE.Raycaster(),vilPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-.12),hit=new THREE.Vector3(0,0,-1),vtmp=new THREE.Vector3();
+function update(now){
+  const dt=Math.min(.05,Math.max(.001,(now-last)/1000));last=now;time=Math.max(0,(now-t0)/1000);
+  const ts=scrollY/SH;s+=(ts-s)*(1-Math.pow(.004,dt));if(forceS!==null)s=forceS;
+  R=Math.min(VW,VH)*.43*DPR;const C=new THREE.Vector2(VW*.5*DPR,VH*.5*DPR);
+  const sl=slideAt(s);const cur=sl.k<.5?sl.A:sl.B;
+  // whip: motion blur and a turret click at the middle
+  const whip=sl.k>0?Math.sin(Math.PI*sl.k):0;const mid=sl.k>.45&&sl.k<.55;if(mid&&!lastWhipMid)A.click();lastWhipMid=mid;
+  // focus: the hand is the fine Z knob
+  const fx=ptr.in?(ptr.x*DPR-C.x)/R:0,fy=ptr.in?-(ptr.y*DPR-C.y)/R:0;ptr.fx+=(fx-ptr.fx)*.12;ptr.fy+=(fy-ptr.fy)*.12;
+  const br=breathAt(time);
+  // ── LIVE: ×1,000,000 → ×400. Field diameter W (µm) zooms out on a log scale.
+  const zt=sm((s-.06)/.32);const W=Math.exp(Math.log(.18)+(Math.log(190)-Math.log(.18))*zt);
+  US.uW.value=W;US.uEmbC.value.set(-24*(1-sm((W-30)/150)),10*(1-sm((W-30)/150)));
+  US.uOptic.value=(1-sm((W-6)/55))*sm((W-.5)/2.5);
+  const molVis=cur===0?1-sm((W-.30)/.32):0;UM.uVis.value=molVis;
+  US.uEmb.value.set(CAL.emb.cx,CAL.emb.cy,CAL.emb.umPerPx,0);
+  // per-slide transforms (field units → source px)
+  const kOf=(Wum,umPerPx)=>Wum*.5/umPerPx;
+  const Wd=560;US.uDros.value.set(CAL.dros.cx,CAL.dros.cy,kOf(Wd,CAL.dros.umPerPx),0);
+  const Wn=1.6;US.uNmj.value.set(CAL.nmj.cx,CAL.nmj.cy,kOf(Wn,CAL.nmj.umPerPx),0);
+  const Wb=210-30*sm((s-3.16)/.6);US.uBb.value.set(CAL.bb.cx,CAL.bb.cy,kOf(Wb,CAL.bb.umPerPx),0);
+  // ── HOLD: heart drives the sarcomeres, then (1872) a 1.000 s clock does
+  const clock=s>2.5;let since,c=0;
+  if(clock){since=time%1;if(!wasClock){nextBeat=Math.ceil(time)}if(time>=nextBeat&&s>1.95&&s<3){nextBeat=Math.floor(time)+1;A.thump()}c=since<.09?since/.09:Math.max(0,1-(since-.09)/.22)}
+  else{const at=A.on&&A.ctx&&A.hStart!=null?(A.ctx.currentTime-A.hStart):time;since=heartPulse(at);c=since<.12?sm(since/.12):Math.exp(-(since-.12)*5.5)}
+  wasClock=clock;
+  const Wt=8.5;const umPerPxT=2.2/TEM.period;US.uTem.value.set(TEM.cx,TEM.cy,kOf(Wt,umPerPxT),c);
+  if(sl.A===3||sl.B===3)buildMap(c*.62);
+  // which specimen is "on the stage"
+  US.uMA.value=sl.A;US.uMB.value=sl.B;US.uK.value=sl.k;
+  US.uFocus.value.set(ptr.fx,ptr.fy);
+  US.uFocusAmt.value=cur===0?(W>40?.75:.25):cur===1?.55:cur===3?.22:cur===4?.15:cur===5?.35:0;
+  US.uBreath.value=(cur===0||cur===1)?br*.16:cur===2?br*.05:0;
+  UM.uFz.value=(fy*14)+(br-.5)*10;
+  // ── KNOW
+  US.uDens.value=1+6*sm((s-3.2)/.58);US.uGain.value=1+4*sm((s-3.55)/.27);
+  const white=sm((s-3.8)/.07);UL.uWhite.value=white;
+  // sources
+  const act={emb:s<.9,fucci:s>.3&&s<.85,dros:s>.7&&s<1.1,peri:s>.9&&s<2.1,cardio:s>1.9&&s<3.05,ca:s>3.05&&s<4.2};
+  for(const k in SRC){SRC[k].setActive(act[k]);SRC[k].draw(time)}
+  if(act.ca&&SRC.ca.mode!=='none'){const key=SRC.ca.mode+SRC.ca.lastKey+(SRC.ca.mode==='video'?Math.floor(time*8):0);if(key!==caKey){caKey=key;US.uCaMu.value=caDrift()}}
+  // peristalsis: luminance of the real midgut clip drives the wave
+  if(act.peri){let L=-1;if(SRC.peri.mode==='video'){const d=SRC.peri.cx.getImageData(0,0,40,30).data;let a=0;for(let i=0;i<d.length;i+=4)a+=d[i];L=a/(d.length/4)/255}
+    if(L>=0){if(periBase<0)periBase=L;periBase+=(L-periBase)*.02;periSig+=((L-periBase)*30-periSig)*.2;periPhase+=dt*(.16+Math.max(0,periSig)*.25)}else{periSig=.5+.5*Math.sin(time*6.283/5.8);periPhase+=dt/5.8}
+    UV.uWaveX.value=-VILW*.6+((periPhase%1))*VILW*1.2;UV.uWaveA.value=.06+.22*Math.max(0,Math.min(1,periSig))}
+  // ── villi render (only when on stage)
+  let vilPxPerUm=0;
+  if(sl.A===2||sl.B===2){const e=sm((s-1)/.95);vilCam.position.set(Math.sin(time*.05)*.15,1.25-.45*e,3.4-1.6*e);vilCam.lookAt(0,-.35,-1.0-.8*e);vilCam.updateMatrixWorld();
+    ray.setFromCamera({x:ptr.in?ptr.x/VW*2-1:0,y:ptr.in?-(ptr.y/VH)*2+1:-.1},vilCam);ray.ray.intersectPlane(vilPlane,vtmp)&&hit.lerp(vtmp,.15);
+    spot.position.copy(vilCam.position).add(new THREE.Vector3(.08,-.04,0));spot.target.position.copy(hit);ring.position.copy(vilCam.position);
+    UV.uFd.value=vilCam.position.distanceTo(hit);UV.uFr.value=.9+.6*(1-e);
+    const a=hit.clone().project(vilCam),b=hit.clone().add(new THREE.Vector3(1,0,0)).project(vilCam);vilPxPerUm=Math.hypot((a.x-b.x)*VW/2,(a.y-b.y)*VH/2)/VIL_UM_PER_UNIT;
+    renderer.setRenderTarget(rtV);renderer.setClearColor(0,0);renderer.clear();renderer.render(vilScene,vilCam)}
+  // ── molecules
+  if(pokeQ){if(cur===0&&molVis>.05){const half=W*500;const nx=(pokeQ.x*DPR-C.x)/R*half,ny=-(pokeQ.y*DPR-C.y)/R*half;poke(nx,ny);A.burst(900,2,.25,.08)}pokeQ=null}
+  if(molVis>0){physics(dt);if(A.on&&contactEv>0&&time-A.lastTick>.04&&Math.random()<Math.min(1,contactEv/30)){A.lastTick=time;A.tick((Math.random()-.5)*1.4)}}
+  // ── uniforms for passes
+  US.uC.value.copy(C);US.uR.value=R;US.uTime.value=time;
+  UL.uC.value.copy(C);UL.uR.value=R*(1+white*3);UL.uTime.value=time;UL.uWhip.value=whip;UL.uHalo.value=cur===2?.55:cur===1?.4:cur===5?.35:cur===4?.45:cur===3?.8:1.15;UL.uGrain.value=cur===2?.07:.055;
+  UD.uMax.value=(cur===2?11:9)*DPR;
+  // ── render
+  renderer.setRenderTarget(rtA);renderer.setClearColor(0,1);renderer.clear();renderer.render(specScene,oCam);
+  if(molVis>0){renderer.autoClear=false;renderer.clearDepth();const half=W*500,hw=half*(VW*DPR/2)/R,hh=half*(VH*DPR/2)/R;molCam.left=-hw;molCam.right=hw;molCam.top=hh;molCam.bottom=-hh;molCam.updateProjectionMatrix();
+    const tiles=hw>HB||hh>HB?[-1,0,1]:[0];for(const ty of tiles)for(const tx_ of tiles){writeInstances(tx_*BOX,ty*BOX);renderer.render(molScene,molCam)}renderer.autoClear=true}
+  renderer.setRenderTarget(rtB);renderer.render(dofScene,oCam);
+  renderer.setRenderTarget(null);renderer.render(lensScene,oCam);
+  // ── UI: scale bar, magnification, clock
+  let pxPerUm,specName=SPEC[cur],clk='',rate='';
+  if(cur===0){pxPerUm=R/(W*.5)/DPR;
+    if(molVis>.5){clk='t = '+(simT*1e6).toFixed(3)+' µs';rate='Δt ×2.0e-7'}
+    else{clk='t = '+SRC.emb.t.toFixed(1)+' s of clip';rate='time-lapse · '+SRC.emb.mode}
+    specName=W<.8?'cytoplasm · model':W<30?'cytoplasm · below optical limit':SPEC[0]}
+  else if(cur===1){pxPerUm=R/(Wd*.5)/DPR;clk='t = in frame';rate='Δt src · '+SRC.dros.mode}
+  else if(cur===2){pxPerUm=vilPxPerUm||R/450/DPR;clk='t = '+hms(SRC.peri.t||time)+'.'+String(Math.floor((time%1)*10));rate='Δt ×1 · peristalsis '+(SRC.peri.mode==='video'?'live':'model')}
+  else if(cur===3){pxPerUm=R/(Wt*.5)/DPR;clk=clock?'drive  clock 1.000 s':'drive  heart 61 bpm';rate=clock?'1872':'cardiomyocytes · '+SRC.cardio.mode}
+  else if(cur===4){pxPerUm=R/(Wn*.5)/DPR;clk='t = fixed';rate='synapse'}
+  else{pxPerUm=R/(Wb*.5)/DPR;clk='t = '+hms(SRC.ca.t)+'';rate='ΔF/F · GCaMP · '+SRC.ca.mode}
+  let um=niceBar(pxPerUm,90),barPx=um*pxPerUm,label=fmtLen(um);
+  const over=sm((s-3.86)/.12);
+  if(over>0){const e=over*24;um=50*Math.pow(10,e);label=fmtLen(um);barPx=Math.min(VW*.9,90*(1+e*.4))}
+  el.bar.style.width=barPx.toFixed(1)+'px';el.sbl.textContent=label;
+  el.mag.textContent='×'+Math.round(pxPerUm*264.6).toLocaleString('en-US')+(cur===0&&W<30&&W>.8?'  · λ/2NA 0.37 µm':'');
+  el.clk.textContent=clk;el.rate.textContent=rate;el.spec.textContent=specName;
+  const credKey=String(cur);if(credKey!==lastCred){lastCred=credKey;el.cred.innerHTML=CRED[cur].map(t=>`<span>${t}</span>`).join('')}
+  document.body.classList.toggle('inv',white>.5);
+  // ── inset reticle: second channel (FUCCI in LIVE, beating cells in HOLD)
+  const insOn=(cur===0&&W>60&&s<.78)?'fucci':(cur===3&&s>2.05&&s<2.95)?'cardio':null;
+  inset.style.opacity=insOn?1:0;insetL.style.opacity=insOn?1:0;
+  if(insOn){const S=inset.width,src=SRC[insOn];ix.clearRect(0,0,S,S);ix.save();ix.beginPath();ix.arc(S/2,S/2,S/2-2*DPR,0,6.283);ix.clip();ix.fillStyle='#000';ix.fillRect(0,0,S,S);
+    if(insOn==='fucci')ix.drawImage(src.cv,20,30,300,226,-S*.15,0,S*1.3,S);else ix.drawImage(src.cv,40,0,240,240,0,0,S,S);ix.restore();
+    ix.strokeStyle='rgba(239,232,216,.45)';ix.lineWidth=DPR;ix.beginPath();ix.arc(S/2,S/2,S/2-2*DPR,0,6.283);ix.stroke();
+    insetL.textContent=insOn==='fucci'?'CH2  FUCCI  ·  '+src.mode:'CH2  hiPSC-CM  ·  '+src.mode}
+  // ── reticle + eyepiece micrometer (ticks are real µm at the current magnification)
+  ux.clearRect(0,0,ui.width,ui.height);
+  if(white<.5){ux.strokeStyle='rgba(239,232,216,.28)';ux.lineWidth=DPR;ux.beginPath();ux.arc(C.x,C.y,R+6*DPR,0,6.283);ux.stroke();
+    ux.strokeStyle='rgba(239,232,216,.5)';for(let i=0;i<4;i++){const a=i*Math.PI/2;ux.beginPath();ux.moveTo(C.x+Math.cos(a)*(R+2*DPR),C.y+Math.sin(a)*(R+2*DPR));ux.lineTo(C.x+Math.cos(a)*(R+14*DPR),C.y+Math.sin(a)*(R+14*DPR));ux.stroke()}
+    const tick=niceBar(pxPerUm,14)*pxPerUm*DPR;ux.strokeStyle='rgba(239,232,216,.30)';ux.beginPath();
+    for(let i=-10;i<=10;i++){const x=C.x+i*tick;const h=(i%5===0?7:3.5)*DPR;ux.moveTo(x,C.y+R*.78-h);ux.lineTo(x,C.y+R*.78)}ux.moveTo(C.x-10*tick,C.y+R*.78);ux.lineTo(C.x+10*tick,C.y+R*.78);ux.stroke();
+    // focus crosshair where the hand is
+    if(ptr.in){const px=ptr.x*DPR,py=ptr.y*DPR;if(Math.hypot(px-C.x,py-C.y)<R){ux.strokeStyle='rgba(239,232,216,.55)';ux.beginPath();ux.moveTo(px-9*DPR,py);ux.lineTo(px-3*DPR,py);ux.moveTo(px+3*DPR,py);ux.lineTo(px+9*DPR,py);ux.moveTo(px,py-9*DPR);ux.lineTo(px,py-3*DPR);ux.moveTo(px,py+3*DPR);ux.lineTo(px,py+9*DPR);ux.stroke()}}}
+  // ── calcium flashes → sparse pizzicato (sampled from the composite's real ΔF)
+  if(cur===5&&A.on&&time-flashPrev>.12){const d=SRC.ca.cx.getImageData(130,120,8,8).data;let a=0;for(let i=0;i<d.length;i+=4)a+=d[i+1];a/=64;if(caProbe!==null&&a-caProbe>3+20/US.uDens.value){flashPrev=time;const sc=[220,247,277,330,370,440,494,554,659];A.pizz(sc[(Math.random()*sc.length)|0],(Math.random()-.5))}caProbe=a}
+  A.update((s<2.5&&s>.05)?(s<2?.35:.6)*(1-white):0);
+  // ── overflow: the number no longer fits, and becomes characters (the text world begins)
+  txx.clearRect(0,0,tx.width,tx.height);
+  const f=sm((s-3.93)/.18);
+  if(f>0){const fs=11*DPR,cw=fs*.62,lh=fs*1.45,cols=Math.floor(tx.width/cw),rows=Math.ceil(tx.height/lh),n=Math.floor(cols*rows*f);
+    txx.font=`300 ${fs}px "Geist Mono",monospace`;txx.fillStyle='rgba(0,0,0,.82)';txx.textBaseline='top';
+    const str=label.replace(/\s/g,'')+'µmmmkm';for(let i=0;i<n;i++){const r=rows-1-Math.floor(i/cols),c2=i%cols;txx.fillText(str[(i*7+r)%str.length],c2*cw,r*lh)}}
+}
+// 単独のループは持たない。本体のループから、顕微鏡の区間にいる間だけ update が呼ばれる（区間の外では follow でスクロールだけ追う）
+function follow(now){const dt=Math.min(.05,Math.max(.001,(now-last)/1000));last=now;time=Math.max(0,(now-t0)/1000);s+=(scrollY/SH-s)*(1-Math.pow(.004,dt));if(forceS!==null)s=forceS}
+window.P2={END:4.12,get s(){return s},SH:()=>SH,update,follow,A,sleep(){for(const k in SRC)SRC[k].setActive(false);inset.style.opacity=0;insetL.style.opacity=0}};
+/* test hook: force scroll stage s and advance the loop synchronously (the review tab is hidden, rAF does not run) */
+window.__shot=function(v,sec=2){forceS=v;let t=last;for(let i=0;i<Math.round(sec*30);i++){t+=33;update(t)}return{s:v,W:+US.uW.value.toFixed(3),modes:Object.fromEntries(Object.entries(SRC).map(([k,x])=>[k,x.mode+':'+x.stills.length])),tem:{ok:TEM.ok,deg:TEM.deg,period:Math.round(TEM.period),Z:TEM.Z.length},onsets:DATA.onsets.length,breath:!!DATA.breath,fail:FAIL.slice()}};
+window.__release=()=>{forceS=null};
+window.__tem={TEM,run:(deg)=>{analyseTEM(IMG.tem,deg);buildMap(0);return{deg:TEM.deg,period:TEM.period,Z:TEM.Z.length}}};
+document.addEventListener('visibilitychange',()=>{if(A.ctx){document.hidden?A.ctx.suspend():A.on&&A.ctx.resume()}});
+</script>
